@@ -20,5 +20,8 @@
   },
   "observability": {
     "enabled": true
-  }
+  },
+  "vars": {
+    "NEXT_PUBLIC_API_URL": "https://pay-api.reignovatechnologies.com"
+  },
 }
