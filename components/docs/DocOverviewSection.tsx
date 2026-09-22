@@ -54,7 +54,7 @@ export const DOC_NAVIGATION: DocCategory[] = [
         codeSample: {
           lang: "bash",
           request: `# Health Check Endpoint
-curl -X GET https://pay.reignovatechnologies.com/api/v1/health`,
+curl -X GET https://pay-api.reignovatechnologies.com/api/v1/health`,
           response: `{
   "status": "UP",
   "version": "1.0.0",
@@ -198,7 +198,7 @@ res.status(200).json({ received: true });`,
         },
         parameters: [
           {
-            name: "x-reignova-signature",
+            name: "X-Payment-Signature",
             type: "header",
             required: true,
             desc: "HMAC-SHA256 signature of raw request body",

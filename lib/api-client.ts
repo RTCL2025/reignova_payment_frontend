@@ -2,6 +2,16 @@ export const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL ||
   "https://pay-api.reignovatechnologies.com/api/v1";
 
+/**
+ * Origin of the payment API, without the versioned `/api/v1` prefix.
+ *
+ * `/health` is mounted outside the versioned router, so it cannot be reached by
+ * appending to `API_BASE_URL`. Deriving it here keeps the health probe pointed at
+ * whichever backend `NEXT_PUBLIC_API_URL` names — a hardcoded origin makes local
+ * development silently monitor production.
+ */
+export const API_ORIGIN = API_BASE_URL.replace(/\/api\/v1\/?$/, "");
+
 const BASE_URL = API_BASE_URL;
 
 export class ApiError extends Error {

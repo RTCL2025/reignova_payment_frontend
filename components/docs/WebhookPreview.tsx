@@ -12,8 +12,8 @@ export function WebhookPreview() {
 
 // Express or Next.js App Router API Route
 export async function POST(req: Request) {
-  // 1. Extract signature from x-reignova-signature header
-  const signature = req.headers.get('x-reignova-signature');
+  // 1. Extract signature from X-Payment-Signature header
+  const signature = req.headers.get('X-Payment-Signature');
   if (!signature) {
     return new Response('Missing Signature', { status: 401 });
   }
@@ -183,7 +183,7 @@ export async function POST(req: Request) {
             </pre>
 
             <div className="px-4 py-2.5 bg-[#131E2A] border-t border-slate-800 text-[11px] font-mono text-slate-400 flex items-center justify-between">
-              <span>Header: x-reignova-signature</span>
+              <span>Header: X-Payment-Signature</span>
               <span className="text-emerald-400">Node.js / Next.js / Express Ready</span>
             </div>
           </div>

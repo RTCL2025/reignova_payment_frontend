@@ -22,6 +22,6 @@
     "enabled": true
   },
   "vars": {
-    "NEXT_PUBLIC_API_URL": "https://pay-api.reignovatechnologies.com"
+    "NEXT_PUBLIC_API_URL": "https://pay-api.reignovatechnologies.com/api/v1"
   },
 }

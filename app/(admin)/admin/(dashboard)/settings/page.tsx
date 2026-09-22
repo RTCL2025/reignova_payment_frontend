@@ -226,7 +226,7 @@ export default function SettingsPage() {
           <div className="space-y-4 text-xs">
             <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
               <span className="font-semibold text-slate-800">Signature Algorithm:</span>
-              <p className="text-slate-600 font-mono text-[11px]">HMAC-SHA256 (Header: X-Reignova-Signature)</p>
+              <p className="text-slate-600 font-mono text-[11px]">HMAC-SHA256 (Header: X-Payment-Signature)</p>
             </div>
 
             <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2">

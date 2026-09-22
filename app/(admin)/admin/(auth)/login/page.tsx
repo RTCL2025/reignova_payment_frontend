@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import React, { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   Lock,
   Mail,
@@ -10,25 +10,25 @@ import {
   AlertCircle,
   Clock,
   Loader2,
-} from 'lucide-react';
-import { ReignovaIcon } from '@/components/brand/ReignovaLogo';
-import { useAdminAuth } from '@/context/AdminAuthContext';
-import { AdminRole } from '@/types/admin';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+} from "lucide-react";
+import { ReignovaIcon } from "@/components/brand/ReignovaLogo";
+import { useAdminAuth } from "@/context/AdminAuthContext";
+import { AdminRole } from "@/types/admin";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 function AdminLoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { login, isAuthenticated, isLoading } = useAdminAuth();
 
-  const redirectUrl = searchParams.get('redirect') || '/admin';
-  const isExpired = searchParams.get('expired') === 'true';
+  const redirectUrl = searchParams.get("redirect") || "/admin";
+  const isExpired = searchParams.get("expired") === "true";
 
-  const [email, setEmail] = useState('');
-  const [apiKeyOrPass, setApiKeyOrPass] = useState('');
-  const [chosenRole, setChosenRole] = useState<AdminRole>('SUPER_ADMIN');
+  const [email, setEmail] = useState("");
+  const [apiKeyOrPass, setApiKeyOrPass] = useState("");
+  const [chosenRole, setChosenRole] = useState<AdminRole>("SUPER_ADMIN");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -42,13 +42,13 @@ function AdminLoginForm() {
     e.preventDefault();
     setErrorMessage(null);
 
-    if (!email || !email.includes('@')) {
-      setErrorMessage('Please enter a valid administrative email address.');
+    if (!email || !email.includes("@")) {
+      setErrorMessage("Please enter a valid administrative email address.");
       return;
     }
 
     if (!apiKeyOrPass) {
-      setErrorMessage('Please enter the Admin API key or password.');
+      setErrorMessage("Please enter the Admin API key or password.");
       return;
     }
 
@@ -57,7 +57,9 @@ function AdminLoginForm() {
       await login(email, apiKeyOrPass, chosenRole);
       router.push(redirectUrl);
     } catch (err: any) {
-      setErrorMessage(err.message || 'Authentication failed. Please verify credentials.');
+      setErrorMessage(
+        err.message || "Authentication failed. Please verify credentials.",
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -86,7 +88,8 @@ function AdminLoginForm() {
             <div className="p-3 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-start gap-2.5">
               <Clock className="size-4 text-amber-600 shrink-0 mt-0.5" />
               <div>
-                <span className="font-semibold">Session Expired:</span> You were idle for more than 30 minutes. Please sign in again to resume.
+                <span className="font-semibold">Session Expired:</span> You were
+                idle for more than 30 minutes. Please sign in again to resume.
               </div>
             </div>
           )}
@@ -101,14 +104,16 @@ function AdminLoginForm() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-slate-700">Admin Work Email</Label>
+              <Label className="text-xs font-semibold text-slate-700">
+                Admin Work Email
+              </Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
                 <Input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@reignova.com"
+                  placeholder="admin@reignovatechnologies.com"
                   className="pl-9 h-10 text-xs bg-slate-50/50 border-slate-200 text-slate-900 placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-slate-900"
                   required
                 />
@@ -117,8 +122,12 @@ function AdminLoginForm() {
 
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <Label className="text-xs font-semibold text-slate-700">Admin API Key / Password</Label>
-                <span className="text-[11px] font-mono text-slate-400">ADMIN_API_KEY</span>
+                <Label className="text-xs font-semibold text-slate-700">
+                  Admin API Key / Password
+                </Label>
+                <span className="text-[11px] font-mono text-slate-400">
+                  ADMIN_API_KEY
+                </span>
               </div>
               <div className="relative">
                 <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
@@ -134,17 +143,27 @@ function AdminLoginForm() {
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-slate-700">Role Context</Label>
+              <Label className="text-xs font-semibold text-slate-700">
+                Role Context
+              </Label>
               <select
                 value={chosenRole}
                 onChange={(e) => setChosenRole(e.target.value as AdminRole)}
                 className="w-full h-10 px-3 text-xs bg-slate-50/50 border border-slate-200 text-slate-900 rounded-lg focus:outline-hidden focus:ring-1 focus:ring-slate-900 font-medium cursor-pointer"
               >
-                <option value="SUPER_ADMIN">Super Admin (Full System Access)</option>
-                <option value="OPERATIONS_ADMIN">Operations Admin (Merchants & Payments)</option>
-                <option value="FINANCE_ADMIN">Finance Admin (Payouts & Refunds)</option>
+                <option value="SUPER_ADMIN">
+                  Super Admin (Full System Access)
+                </option>
+                <option value="OPERATIONS_ADMIN">
+                  Operations Admin (Merchants & Payments)
+                </option>
+                <option value="FINANCE_ADMIN">
+                  Finance Admin (Payouts & Refunds)
+                </option>
                 <option value="AUDITOR">Auditor (Read-only Compliance)</option>
-                <option value="SUPPORT_AGENT">Support Agent (Limited Read-only)</option>
+                <option value="SUPPORT_AGENT">
+                  Support Agent (Limited Read-only)
+                </option>
               </select>
             </div>
 
@@ -166,13 +185,14 @@ function AdminLoginForm() {
               )}
             </Button>
           </form>
-
         </div>
 
         {/* Security Notice */}
         <div className="flex items-center justify-center gap-2 text-center text-[11px] text-slate-400">
           <Lock className="size-3 text-slate-400" />
-          <span>Protected by Enterprise TLS & Immutable Server Audit Logging</span>
+          <span>
+            Protected by Enterprise TLS & Immutable Server Audit Logging
+          </span>
         </div>
       </div>
     </div>
@@ -192,4 +212,3 @@ export default function AdminLoginPage() {
     </Suspense>
   );
 }
-
