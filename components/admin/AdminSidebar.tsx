@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import React from 'react';
-import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import React from "react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import {
   Layers,
   Building2,
@@ -13,11 +13,11 @@ import {
   Settings,
   LogOut,
   ChevronDown,
-} from 'lucide-react';
-import { ReignovaLogo } from '@/components/brand/ReignovaLogo';
-import { useAdminAuth } from '@/context/AdminAuthContext';
-import { AdminRole } from '@/types/admin';
-import { cn } from '@/lib/utils';
+} from "lucide-react";
+import { ReignovaLogo } from "@/components/brand/ReignovaLogo";
+import { useAdminAuth } from "@/context/AdminAuthContext";
+import { AdminRole } from "@/types/admin";
+import { cn } from "@/lib/utils";
 
 interface NavItem {
   label: string;
@@ -27,22 +27,26 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { label: 'Overview', href: '/admin', icon: Layers, exact: true },
-  { label: 'Merchants', href: '/admin/merchants', icon: Building2 },
-  { label: 'Payments', href: '/admin/payments', icon: CreditCard },
-  { label: 'Refunds', href: '/admin/refunds', icon: RotateCcw },
-  { label: 'Payouts', href: '/admin/payouts', icon: Send },
-  { label: 'Checkout Sessions', href: '/admin/checkout-sessions', icon: Layers },
-  { label: 'Audit Logs', href: '/admin/audit-logs', icon: FileCode2 },
-  { label: 'Settings', href: '/admin/settings', icon: Settings },
+  { label: "Overview", href: "/admin", icon: Layers, exact: true },
+  { label: "Merchants", href: "/admin/merchants", icon: Building2 },
+  { label: "Payments", href: "/admin/payments", icon: CreditCard },
+  { label: "Refunds", href: "/admin/refunds", icon: RotateCcw },
+  { label: "Payouts", href: "/admin/payouts", icon: Send },
+  {
+    label: "Checkout Sessions",
+    href: "/admin/checkout-sessions",
+    icon: Layers,
+  },
+  { label: "Audit Logs", href: "/admin/audit-logs", icon: FileCode2 },
+  { label: "Settings", href: "/admin/settings", icon: Settings },
 ];
 
 const ROLES: { label: string; value: AdminRole }[] = [
-  { label: 'Super Admin', value: 'SUPER_ADMIN' },
-  { label: 'Operations Admin', value: 'OPERATIONS_ADMIN' },
-  { label: 'Finance Admin', value: 'FINANCE_ADMIN' },
-  { label: 'Auditor', value: 'AUDITOR' },
-  { label: 'Support Agent', value: 'SUPPORT_AGENT' },
+  { label: "Super Admin", value: "SUPER_ADMIN" },
+  { label: "Operations Admin", value: "OPERATIONS_ADMIN" },
+  { label: "Finance Admin", value: "FINANCE_ADMIN" },
+  { label: "Auditor", value: "AUDITOR" },
+  { label: "Support Agent", value: "SUPPORT_AGENT" },
 ];
 
 interface AdminSidebarProps {
@@ -57,14 +61,14 @@ export function AdminSidebar({ onCloseMobile, className }: AdminSidebarProps) {
 
   const handleSignOut = () => {
     logout();
-    router.push('/admin/login');
+    router.push("/admin/login");
   };
 
   return (
     <aside
       className={cn(
-        'w-64 h-screen bg-white border-r border-slate-200/90 flex flex-col justify-between shrink-0 select-none',
-        className
+        "w-64 h-screen bg-white border-r border-slate-200/90 flex flex-col justify-between shrink-0 select-none",
+        className,
       )}
     >
       {/* Top Header */}
@@ -108,16 +112,16 @@ export function AdminSidebar({ onCloseMobile, className }: AdminSidebarProps) {
                 href={item.href}
                 onClick={onCloseMobile}
                 className={cn(
-                  'flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-colors duration-100',
+                  "flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-colors duration-100",
                   isActive
-                    ? 'bg-slate-100/90 text-slate-900 font-semibold shadow-2xs'
-                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                    ? "bg-slate-100/90 text-slate-900 font-semibold shadow-2xs"
+                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-900",
                 )}
               >
                 <Icon
                   className={cn(
-                    'size-4 shrink-0',
-                    isActive ? 'text-slate-900' : 'text-slate-400'
+                    "size-4 shrink-0",
+                    isActive ? "text-slate-900" : "text-slate-400",
                   )}
                 />
                 <span>{item.label}</span>
@@ -154,14 +158,14 @@ export function AdminSidebar({ onCloseMobile, className }: AdminSidebarProps) {
         <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-200/60">
           <div className="flex items-center gap-2.5 overflow-hidden">
             <div className="size-7 rounded-full bg-slate-200 border border-slate-300 flex items-center justify-center text-xs font-bold text-slate-700 shrink-0">
-              {user?.name?.[0] || 'A'}
+              {user?.name?.[0] || "A"}
             </div>
             <div className="flex flex-col min-w-0">
               <span className="text-xs font-semibold text-slate-900 truncate">
-                {user?.name || 'Administrator'}
+                {user?.name || "Administrator"}
               </span>
               <span className="text-[11px] text-slate-500 truncate font-mono">
-                {user?.email || 'admin@reignova.com'}
+                {user?.email || "admin@reignovatechnologies.com"}
               </span>
             </div>
           </div>
