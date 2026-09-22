@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import { CheckCircle2, ArrowRight, Printer, ShieldCheck } from 'lucide-react';
-import confetti from 'canvas-confetti';
-import { formatCurrency, formatPhoneNumber } from '@/lib/formatters';
-import { API_BASE_URL } from '@/lib/api-client';
-import type { CheckoutSession } from '@/types/checkout';
-import { Button } from '@/components/ui/button';
+import React, { useEffect, useState } from "react";
+import { CheckCircle2, ArrowRight, Printer, ShieldCheck } from "lucide-react";
+import confetti from "canvas-confetti";
+import { formatCurrency, formatPhoneNumber } from "@/lib/formatters";
+import { API_BASE_URL } from "@/lib/api-client";
+import type { CheckoutSession } from "@/types/checkout";
+import { Button } from "@/components/ui/button";
 
 interface CheckoutSuccessProps {
   session: CheckoutSession;
@@ -20,15 +20,16 @@ interface CheckoutSuccessProps {
 export function CheckoutSuccess({
   session,
   phone,
-  providerName = 'Mobile Money',
+  providerName = "Mobile Money",
   providerLogoUrl,
   carrierTransId,
   onResetState,
 }: CheckoutSuccessProps) {
   const [countdown, setCountdown] = useState(5);
   const returnUrl = session.merchant.returnUrl;
-  const customerEmail = session.customer.email || 'your email';
-  const effectiveTransId = session.depositId || carrierTransId || session.reference;
+  const customerEmail = session.customer.email || "your email";
+  const effectiveTransId =
+    session.depositId || carrierTransId || session.reference;
 
   useEffect(() => {
     try {
@@ -36,7 +37,7 @@ export function CheckoutSuccess({
         particleCount: 100,
         spread: 70,
         origin: { y: 0.6 },
-        colors: ['#F3A221', '#00A859', '#0F1A25', '#FFB74D'],
+        colors: ["#F3A221", "#00A859", "#0F1A25", "#FFB74D"],
       });
     } catch {
       // ignore
@@ -73,7 +74,8 @@ export function CheckoutSuccess({
           Payment Confirmed!
         </h3>
         <p className="text-sm text-slate-500 max-w-sm mx-auto mt-1 leading-relaxed">
-          Receipt sent to <span className="text-slate-900 font-semibold">{customerEmail}</span>.
+          Receipt sent to{" "}
+          <span className="text-slate-900 font-semibold">{customerEmail}</span>.
         </p>
       </div>
 
@@ -95,7 +97,9 @@ export function CheckoutSuccess({
         </div>
         <div className="flex justify-between text-xs text-slate-600">
           <span className="text-slate-500 font-medium">Trans ID:</span>
-          <span className="text-slate-900 font-mono font-bold">{effectiveTransId}</span>
+          <span className="text-slate-900 font-mono font-bold">
+            {effectiveTransId}
+          </span>
         </div>
         <div className="flex justify-between text-xs text-slate-600">
           <span className="text-slate-500">Amount Paid:</span>
@@ -105,7 +109,9 @@ export function CheckoutSuccess({
         </div>
         <div className="flex justify-between text-xs text-slate-600">
           <span className="text-slate-500">Settled To:</span>
-          <span className="text-slate-900 font-semibold">{session.merchant.name}</span>
+          <span className="text-slate-900 font-semibold">
+            {session.merchant.name}
+          </span>
         </div>
         <div className="flex justify-between text-xs text-slate-600 pt-1 border-t border-slate-200">
           <span className="text-slate-500">Order Reference:</span>
@@ -115,7 +121,7 @@ export function CheckoutSuccess({
 
       {/* Action Buttons */}
       <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
-        {returnUrl ? (
+        {/* {returnUrl ? (
           <Button
             type="button"
             onClick={() => (window.location.href = returnUrl)}
@@ -132,7 +138,7 @@ export function CheckoutSuccess({
           >
             Return to Checkout Home
           </button>
-        ) : null}
+        ) : null} */}
 
         <a
           href={`${API_BASE_URL}/checkouts/public/${session.publicToken}/receipt?download=true`}
