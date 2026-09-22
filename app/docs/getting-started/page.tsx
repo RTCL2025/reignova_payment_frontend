@@ -38,7 +38,7 @@ export default function GettingStartedPage() {
               <h3 className="font-bold text-slate-900 text-sm">Sandbox Environment</h3>
             </div>
             <code className="text-xs font-mono text-amber-800 block bg-amber-50 p-2 rounded border border-amber-200">
-              https://sandbox-pay.reignovatechnologies.com/api/v1
+              https://pay-api.reignovatechnologies.com/api/v1
             </code>
             <p className="text-xs text-slate-600">
               Use for development, integration testing, and simulated mobile operator responses without charging actual money.
@@ -51,7 +51,7 @@ export default function GettingStartedPage() {
               <h3 className="font-bold text-slate-900 text-sm">Production Environment</h3>
             </div>
             <code className="text-xs font-mono text-emerald-800 block bg-emerald-50 p-2 rounded border border-emerald-200">
-              https://pay.reignovatechnologies.com/api/v1
+              https://pay-api.reignovatechnologies.com/api/v1
             </code>
             <p className="text-xs text-slate-600">
               Live processing environment. Connects directly to real mobile money networks (M-Pesa, Airtel Money, Tigo Pesa).
@@ -88,7 +88,7 @@ export default function GettingStartedPage() {
           Execute a POST request to <code className="text-amber-800 bg-amber-50 px-1.5 py-0.5 rounded font-mono text-xs border border-amber-200">/checkouts/public</code>:
         </p>
         <div className="bg-[#0F1A25] border border-slate-800 rounded-xl p-4 font-mono text-xs text-amber-300 overflow-x-auto">
-          <pre><code>{`curl -X POST https://pay.reignovatechnologies.com/api/v1/checkouts/public \\
+          <pre><code>{`curl -X POST https://pay-api.reignovatechnologies.com/api/v1/checkouts/public \\
   -H "Authorization: Bearer YOUR_API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{

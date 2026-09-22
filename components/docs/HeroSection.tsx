@@ -1,21 +1,36 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import Link from 'next/link';
-import { ArrowRight, Shield, Terminal, Check, Copy, Play, RefreshCw, Zap, Server, Lock } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import React, { useState } from "react";
+import Link from "next/link";
+import {
+  ArrowRight,
+  Shield,
+  Terminal,
+  Check,
+  Copy,
+  Play,
+  RefreshCw,
+  Zap,
+  Server,
+  Lock,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 export function HeroSection() {
-  const [activeTab, setActiveTab] = useState<'create_checkout' | 'webhook_payload' | 'payment_status'>('create_checkout');
+  const [activeTab, setActiveTab] = useState<
+    "create_checkout" | "webhook_payload" | "payment_status"
+  >("create_checkout");
   const [copied, setCopied] = useState(false);
   const [isSimulating, setIsSimulating] = useState(false);
-  const [simulatedStatus, setSimulatedStatus] = useState<'PENDING' | 'WAITING_PAYMENT' | 'COMPLETED'>('PENDING');
+  const [simulatedStatus, setSimulatedStatus] = useState<
+    "PENDING" | "WAITING_PAYMENT" | "COMPLETED"
+  >("PENDING");
 
   const snippets = {
     create_checkout: {
-      title: 'POST /checkouts/public',
-      code: `curl -X POST https://pay.reignovatechnologies.com/api/v1/checkouts \\
+      title: "POST /checkouts/public",
+      code: `curl -X POST https://pay-api.reignovatechnologies.com/api/v1/checkouts \\
   -H "Authorization: Bearer sk_live_reignova_events_8f3a" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -24,7 +39,7 @@ export function HeroSection() {
     "country": "TZA",
     "reference": "EVT-2026-9921",
     "description": "ReignovaEvents VIP Ticket Pass",
-    "returnUrl": "https://events.reignova.com/checkout/success"
+    "returnUrl": "https://events.reignovatechnologies.com/checkout/success"
   }'`,
       response: `{
   "success": true,
@@ -41,12 +56,12 @@ export function HeroSection() {
 }`,
     },
     webhook_payload: {
-      title: 'POST /api/webhooks/reignova-pay',
+      title: "POST /api/webhooks/reignova-pay",
       code: `// Verification & Raw Payload Handling
 import { verifyWebhookSignature } from '@reignova/pay-sdk';
 
 export async function POST(req: Request) {
-  const signature = req.headers.get('x-reignova-signature');
+  const signature = req.headers.get('X-Payment-Signature');
   const rawBody = await req.text();
   
   const isValid = verifyWebhookSignature(rawBody, signature, process.env.WEBHOOK_SECRET);
@@ -67,7 +82,7 @@ export async function POST(req: Request) {
 }`,
     },
     payment_status: {
-      title: 'GET /checkouts/public/chk_live_9f82ab411e72/status',
+      title: "GET /checkouts/public/chk_live_9f82ab411e72/status",
       code: `const status = await getCheckoutStatus("chk_live_9f82ab411e72");
 console.log("Current session status:", status);`,
       response: `{
@@ -90,11 +105,11 @@ console.log("Current session status:", status);`,
 
   const handleSimulate = () => {
     setIsSimulating(true);
-    setSimulatedStatus('PENDING');
+    setSimulatedStatus("PENDING");
     setTimeout(() => {
-      setSimulatedStatus('WAITING_PAYMENT');
+      setSimulatedStatus("WAITING_PAYMENT");
       setTimeout(() => {
-        setSimulatedStatus('COMPLETED');
+        setSimulatedStatus("COMPLETED");
         setIsSimulating(false);
       }, 1200);
     }, 1000);
@@ -107,7 +122,6 @@ console.log("Current session status:", status);`,
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
-          
           {/* Left Hero Content */}
           <div className="lg:col-span-6 space-y-6 text-left">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-100/80 border border-amber-300/60 text-amber-800 text-xs font-semibold">
@@ -123,7 +137,9 @@ console.log("Current session status:", status);`,
             </h1>
 
             <p className="text-sm sm:text-base text-slate-600 leading-relaxed font-normal">
-              Integrate secure hosted checkouts, payment processing, webhooks, and transaction management through a centralized payment infrastructure built for Reignova products.
+              Integrate secure hosted checkouts, payment processing, webhooks,
+              and transaction management through a centralized payment
+              infrastructure built for Reignova products.
             </p>
 
             {/* CTAs */}
@@ -172,7 +188,6 @@ console.log("Current session status:", status);`,
           {/* Right Hero Visual: Dark Code Box for high contrast on light mode */}
           <div className="lg:col-span-6">
             <div className="bg-[#0F1A25] border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
-              
               {/* Terminal Title Bar */}
               <div className="px-4 py-3 bg-[#131E2A] border-b border-slate-800 flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -191,15 +206,23 @@ console.log("Current session status:", status);`,
                     disabled={isSimulating}
                     className="flex items-center gap-1 px-2.5 py-1 text-[11px] font-mono rounded bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 border border-amber-500/40 disabled:opacity-50 transition-colors"
                   >
-                    <Play className={`size-3 ${isSimulating ? 'animate-spin' : ''}`} />
-                    <span>{isSimulating ? 'Processing...' : 'Simulate Call'}</span>
+                    <Play
+                      className={`size-3 ${isSimulating ? "animate-spin" : ""}`}
+                    />
+                    <span>
+                      {isSimulating ? "Processing..." : "Simulate Call"}
+                    </span>
                   </button>
                   <button
                     onClick={handleCopy}
                     className="p-1.5 rounded bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
                     title="Copy request"
                   >
-                    {copied ? <Check className="size-3.5 text-emerald-400" /> : <Copy className="size-3.5" />}
+                    {copied ? (
+                      <Check className="size-3.5 text-emerald-400" />
+                    ) : (
+                      <Copy className="size-3.5" />
+                    )}
                   </button>
                 </div>
               </div>
@@ -207,31 +230,31 @@ console.log("Current session status:", status);`,
               {/* Request / Response Tab Selector */}
               <div className="flex border-b border-slate-800 bg-[#0A121A]/60 px-2 pt-2 gap-1 text-xs">
                 <button
-                  onClick={() => setActiveTab('create_checkout')}
+                  onClick={() => setActiveTab("create_checkout")}
                   className={`px-3 py-1.5 rounded-t-lg font-mono font-medium transition-colors ${
-                    activeTab === 'create_checkout'
-                      ? 'bg-[#0F1A25] text-amber-400 border-t-2 border-amber-400'
-                      : 'text-slate-400 hover:text-slate-200'
+                    activeTab === "create_checkout"
+                      ? "bg-[#0F1A25] text-amber-400 border-t-2 border-amber-400"
+                      : "text-slate-400 hover:text-slate-200"
                   }`}
                 >
                   Create Checkout
                 </button>
                 <button
-                  onClick={() => setActiveTab('payment_status')}
+                  onClick={() => setActiveTab("payment_status")}
                   className={`px-3 py-1.5 rounded-t-lg font-mono font-medium transition-colors ${
-                    activeTab === 'payment_status'
-                      ? 'bg-[#0F1A25] text-amber-400 border-t-2 border-amber-400'
-                      : 'text-slate-400 hover:text-slate-200'
+                    activeTab === "payment_status"
+                      ? "bg-[#0F1A25] text-amber-400 border-t-2 border-amber-400"
+                      : "text-slate-400 hover:text-slate-200"
                   }`}
                 >
                   Check Status
                 </button>
                 <button
-                  onClick={() => setActiveTab('webhook_payload')}
+                  onClick={() => setActiveTab("webhook_payload")}
                   className={`px-3 py-1.5 rounded-t-lg font-mono font-medium transition-colors ${
-                    activeTab === 'webhook_payload'
-                      ? 'bg-[#0F1A25] text-amber-400 border-t-2 border-amber-400'
-                      : 'text-slate-400 hover:text-slate-200'
+                    activeTab === "webhook_payload"
+                      ? "bg-[#0F1A25] text-amber-400 border-t-2 border-amber-400"
+                      : "text-slate-400 hover:text-slate-200"
                   }`}
                 >
                   Webhook Event
@@ -241,7 +264,9 @@ console.log("Current session status:", status);`,
               {/* Code Snippet Box */}
               <div className="p-4 font-mono text-xs overflow-x-auto space-y-3 bg-[#0A121A]/80">
                 <div>
-                  <span className="text-slate-500 font-bold select-none">// REQUEST</span>
+                  <span className="text-slate-500 font-bold select-none">
+                    // REQUEST
+                  </span>
                   <pre className="text-slate-300 mt-1 leading-relaxed">
                     <code>{snippets[activeTab].code}</code>
                   </pre>
@@ -249,12 +274,19 @@ console.log("Current session status:", status);`,
 
                 <div className="pt-2 border-t border-slate-800/80">
                   <div className="flex items-center justify-between">
-                    <span className="text-slate-500 font-bold select-none">// RESPONSE (200 OK)</span>
-                    <Badge variant="outline" className={`text-[10px] font-mono ${
-                      simulatedStatus === 'COMPLETED' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40' :
-                      simulatedStatus === 'WAITING_PAYMENT' ? 'bg-sky-500/20 text-sky-400 border-sky-500/40' :
-                      'bg-amber-500/20 text-amber-400 border-amber-500/40'
-                    }`}>
+                    <span className="text-slate-500 font-bold select-none">
+                      // RESPONSE (200 OK)
+                    </span>
+                    <Badge
+                      variant="outline"
+                      className={`text-[10px] font-mono ${
+                        simulatedStatus === "COMPLETED"
+                          ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/40"
+                          : simulatedStatus === "WAITING_PAYMENT"
+                            ? "bg-sky-500/20 text-sky-400 border-sky-500/40"
+                            : "bg-amber-500/20 text-amber-400 border-amber-500/40"
+                      }`}
+                    >
                       STATUS: {simulatedStatus}
                     </Badge>
                   </div>
@@ -268,14 +300,14 @@ console.log("Current session status:", status);`,
               <div className="px-4 py-2 bg-[#131E2A] border-t border-slate-800 flex items-center justify-between text-[11px] font-mono text-slate-400">
                 <span className="flex items-center gap-1.5">
                   <span className="size-2 rounded-full bg-emerald-400 animate-ping" />
-                  <span>API Base: https://pay.reignovatechnologies.com/api/v1</span>
+                  <span>
+                    API Base: https://pay-api.reignovatechnologies.com/api/v1
+                  </span>
                 </span>
                 <span className="text-slate-500">v1.0.0</span>
               </div>
-
             </div>
           </div>
-
         </div>
       </div>
     </section>

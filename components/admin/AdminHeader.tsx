@@ -15,6 +15,7 @@ import {
 import { CommandSearchDialog } from "./CommandSearchDialog";
 import { cn } from "@/lib/utils";
 import { adminApiClient } from "@/lib/admin-api";
+import { API_ORIGIN } from "@/lib/api-client";
 
 interface AdminHeaderProps {
   onOpenMobileMenu: () => void;
@@ -139,10 +140,7 @@ export function AdminHeader({ onOpenMobileMenu }: AdminHeaderProps) {
   useEffect(() => {
     async function checkHealth() {
       try {
-        const res = await fetch(
-          "https://pay-api.reignovatechnologies.com/health",
-          { method: "GET" },
-        );
+        const res = await fetch(`${API_ORIGIN}/health`, { method: "GET" });
         setIsBackendHealthy(res.ok);
       } catch {
         setIsBackendHealthy(false);

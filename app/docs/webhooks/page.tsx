@@ -45,12 +45,12 @@ export default function WebhooksPage() {
       <section id="signature" className="space-y-4 pt-6 border-t border-slate-200">
         <h2 className="text-xl font-bold text-slate-900">HMAC-SHA256 Signature Verification</h2>
         <p className="text-slate-700">
-          Reignova Payment Service attaches an HMAC-SHA256 header: <code className="text-amber-800 font-mono">x-reignova-signature</code>.
+          Reignova Payment Service attaches an HMAC-SHA256 header: <code className="text-amber-800 font-mono">X-Payment-Signature</code>.
         </p>
         <div className="bg-[#0F1A25] border border-slate-800 rounded-xl p-4 font-mono text-xs text-amber-300 overflow-x-auto">
           <pre><code>{`import crypto from 'crypto';
 
-const signature = req.headers['x-reignova-signature'];
+const signature = req.headers['X-Payment-Signature'];
 const expected = crypto
   .createHmac('sha256', process.env.WEBHOOK_SECRET)
   .update(rawBodyString)
