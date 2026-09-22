@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { Lock, Globe, User, AlertTriangle, X } from 'lucide-react';
-import { ReignovaLogo } from '@/components/brand/ReignovaLogo';
-import { formatTimeRemaining } from '@/lib/formatters';
+import React, { useState, useEffect } from "react";
+import { Lock, Globe, User, AlertTriangle, X } from "lucide-react";
+import { ReignovaLogo } from "@/components/brand/ReignovaLogo";
+import { formatTimeRemaining } from "@/lib/formatters";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,8 +14,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
-import { Button } from '@/components/ui/button';
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
 
 interface CheckoutHeaderProps {
   expiresAt?: string;
@@ -24,8 +24,8 @@ interface CheckoutHeaderProps {
   hideTimer?: boolean;
   hideCancel?: boolean;
   isTestMode?: boolean;
-  activeTab?: 'payment' | 'details';
-  onTabChange?: (tab: 'payment' | 'details') => void;
+  activeTab?: "payment" | "details";
+  onTabChange?: (tab: "payment" | "details") => void;
 }
 
 export function CheckoutHeader({
@@ -35,10 +35,12 @@ export function CheckoutHeader({
   hideTimer = false,
   hideCancel = false,
   isTestMode = true,
-  activeTab = 'payment',
+  activeTab = "payment",
   onTabChange,
 }: CheckoutHeaderProps) {
-  const [timeLeft, setTimeLeft] = useState(() => (expiresAt ? formatTimeRemaining(expiresAt) : null));
+  const [timeLeft, setTimeLeft] = useState(() =>
+    expiresAt ? formatTimeRemaining(expiresAt) : null,
+  );
   const [isAlertOpen, setIsAlertOpen] = useState(false);
 
   useEffect(() => {
@@ -65,11 +67,11 @@ export function CheckoutHeader({
           </div>
 
           {/* Test Mode Badge */}
-          {isTestMode && (
+          {/* {isTestMode && (
             <div className="hidden md:inline-flex items-center px-2.5 py-0.5 rounded-full bg-blue-50 border border-blue-200/60 text-blue-700 text-[11px] font-semibold tracking-wider font-mono">
               TEST MODE
             </div>
-          )}
+          )} */}
         </div>
 
         {/* Right: Navigation, Currency Selector, and User Pill */}
@@ -77,22 +79,22 @@ export function CheckoutHeader({
           <nav className="flex items-center gap-1 bg-slate-100/70 p-1 rounded-xl border border-slate-200/60">
             <button
               type="button"
-              onClick={() => onTabChange?.('payment')}
+              onClick={() => onTabChange?.("payment")}
               className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all ${
-                activeTab === 'payment'
-                  ? 'bg-white text-slate-900 shadow-xs'
-                  : 'text-slate-500 hover:text-slate-900'
+                activeTab === "payment"
+                  ? "bg-white text-slate-900 shadow-xs"
+                  : "text-slate-500 hover:text-slate-900"
               }`}
             >
               Payment
             </button>
             <button
               type="button"
-              onClick={() => onTabChange?.('details')}
+              onClick={() => onTabChange?.("details")}
               className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all ${
-                activeTab === 'details'
-                  ? 'bg-white text-slate-900 shadow-xs'
-                  : 'text-slate-500 hover:text-slate-900'
+                activeTab === "details"
+                  ? "bg-white text-slate-900 shadow-xs"
+                  : "text-slate-500 hover:text-slate-900"
               }`}
             >
               Details
@@ -130,9 +132,12 @@ export function CheckoutHeader({
               </AlertDialogTrigger>
               <AlertDialogContent className="bg-white border-slate-200 text-slate-900">
                 <AlertDialogHeader>
-                  <AlertDialogTitle className="text-slate-900">Cancel Checkout?</AlertDialogTitle>
+                  <AlertDialogTitle className="text-slate-900">
+                    Cancel Checkout?
+                  </AlertDialogTitle>
                   <AlertDialogDescription className="text-slate-500">
-                    Are you sure you want to cancel this checkout session? This action cannot be undone.
+                    Are you sure you want to cancel this checkout session? This
+                    action cannot be undone.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>

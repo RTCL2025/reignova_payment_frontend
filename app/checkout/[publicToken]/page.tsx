@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { useParams } from 'next/navigation';
+import React, { useState, useEffect, useCallback } from "react";
+import { useParams } from "next/navigation";
 import {
   getCheckoutSession,
   initiatePayment,
@@ -9,18 +9,18 @@ import {
   getCheckoutStatus,
   simulateCheckoutApproval,
   simulateCheckoutTimeout,
-} from '@/lib/checkout-api';
-import { useCheckoutStatus } from '@/hooks/use-checkout-status';
-import { MerchantSummary } from '@/components/checkout/MerchantSummary';
-import { CustomerDetailsForm } from '@/components/checkout/CustomerDetailsForm';
-import { CheckoutSkeleton } from '@/components/checkout/states/CheckoutSkeleton';
-import { CheckoutProcessing } from '@/components/checkout/states/CheckoutProcessing';
-import { CheckoutSuccess } from '@/components/checkout/states/CheckoutSuccess';
-import { CheckoutFailed } from '@/components/checkout/states/CheckoutFailed';
-import { CheckoutExpired } from '@/components/checkout/states/CheckoutExpired';
-import { CheckoutCancelled } from '@/components/checkout/states/CheckoutCancelled';
-import { ShieldCheck, AlertCircle, RefreshCw, Lock, X } from 'lucide-react';
-import { ReignovaLogo } from '@/components/brand/ReignovaLogo';
+} from "@/lib/checkout-api";
+import { useCheckoutStatus } from "@/hooks/use-checkout-status";
+import { MerchantSummary } from "@/components/checkout/MerchantSummary";
+import { CustomerDetailsForm } from "@/components/checkout/CustomerDetailsForm";
+import { CheckoutSkeleton } from "@/components/checkout/states/CheckoutSkeleton";
+import { CheckoutProcessing } from "@/components/checkout/states/CheckoutProcessing";
+import { CheckoutSuccess } from "@/components/checkout/states/CheckoutSuccess";
+import { CheckoutFailed } from "@/components/checkout/states/CheckoutFailed";
+import { CheckoutExpired } from "@/components/checkout/states/CheckoutExpired";
+import { CheckoutCancelled } from "@/components/checkout/states/CheckoutCancelled";
+import { ShieldCheck, AlertCircle, RefreshCw, Lock, X } from "lucide-react";
+import { ReignovaLogo } from "@/components/brand/ReignovaLogo";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,15 +31,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
-import type { CheckoutSession, InitiatePaymentPayload } from '@/types/checkout';
-import { PROVIDER_MAP } from '@/lib/formatters';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+} from "@/components/ui/alert-dialog";
+import type { CheckoutSession, InitiatePaymentPayload } from "@/types/checkout";
+import { PROVIDER_MAP } from "@/lib/formatters";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 export default function CheckoutPage() {
   const params = useParams();
-  const publicToken = (params?.publicToken as string) || '';
+  const publicToken = (params?.publicToken as string) || "";
 
   const [session, setSession] = useState<CheckoutSession | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -48,26 +48,24 @@ export default function CheckoutPage() {
   // Form submission state
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [submittedPhone, setSubmittedPhone] = useState<string>('');
-  const [submittedProvider, setSubmittedProvider] = useState<string>('VODACOM_TZA');
+  const [submittedPhone, setSubmittedPhone] = useState<string>("");
+  const [submittedProvider, setSubmittedProvider] =
+    useState<string>("VODACOM_TZA");
   const [isCancelling, setIsCancelling] = useState<boolean>(false);
 
   // Polling hook
-  const {
-    status,
-    setStatus,
-    failureReason,
-    startPolling,
-    stopPolling,
-  } = useCheckoutStatus({
-    publicToken,
-    initialStatus: 'PENDING',
-    onStatusChange: (newStatus, reason) => {
-      if (session) {
-        setSession((prev) => (prev ? { ...prev, status: newStatus, failureReason: reason } : null));
-      }
-    },
-  });
+  const { status, setStatus, failureReason, startPolling, stopPolling } =
+    useCheckoutStatus({
+      publicToken,
+      initialStatus: "PENDING",
+      onStatusChange: (newStatus, reason) => {
+        if (session) {
+          setSession((prev) =>
+            prev ? { ...prev, status: newStatus, failureReason: reason } : null,
+          );
+        }
+      },
+    });
 
   // Fetch session on mount
   const fetchSession = useCallback(async () => {
@@ -79,11 +77,14 @@ export default function CheckoutPage() {
       const data = await getCheckoutSession(publicToken);
       setSession(data);
       setStatus(data.status);
-      if (data.status === 'PROCESSING') {
+      if (data.status === "PROCESSING") {
         startPolling();
       }
     } catch (err: any) {
-      setLoadError(err?.message || 'Unable to load checkout session. It may have expired or been removed.');
+      setLoadError(
+        err?.message ||
+          "Unable to load checkout session. It may have expired or been removed.",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -108,7 +109,8 @@ export default function CheckoutPage() {
       startPolling();
     } catch (err: any) {
       setSubmitError(
-        err?.message || 'Failed to initiate payment. Please check the phone number and try again.'
+        err?.message ||
+          "Failed to initiate payment. Please check the phone number and try again.",
       );
     } finally {
       setIsSubmitting(false);
@@ -123,10 +125,10 @@ export default function CheckoutPage() {
     try {
       stopPolling();
       await cancelCheckoutSession(publicToken);
-      setStatus('CANCELLED');
-      setSession((prev) => (prev ? { ...prev, status: 'CANCELLED' } : null));
+      setStatus("CANCELLED");
+      setSession((prev) => (prev ? { ...prev, status: "CANCELLED" } : null));
     } catch (err: any) {
-      alert(err?.message || 'Could not cancel session');
+      alert(err?.message || "Could not cancel session");
     } finally {
       setIsCancelling(false);
     }
@@ -135,8 +137,10 @@ export default function CheckoutPage() {
   // Retry / reset from terminal state
   const handleResetToDefault = () => {
     setSubmitError(null);
-    setStatus('WAITING_PAYMENT');
-    setSession((prev) => (prev ? { ...prev, status: 'WAITING_PAYMENT' } : null));
+    setStatus("WAITING_PAYMENT");
+    setSession((prev) =>
+      prev ? { ...prev, status: "WAITING_PAYMENT" } : null,
+    );
   };
 
   // Loading Skeleton
@@ -160,8 +164,12 @@ export default function CheckoutPage() {
               <AlertCircle className="size-7" />
             </div>
             <div className="flex flex-col gap-1.5">
-              <h1 className="text-xl font-bold text-slate-900 tracking-tight">Checkout Error</h1>
-              <p className="text-sm text-slate-500">{loadError || 'Session could not be retrieved.'}</p>
+              <h1 className="text-xl font-bold text-slate-900 tracking-tight">
+                Checkout Error
+              </h1>
+              <p className="text-sm text-slate-500">
+                {loadError || "Session could not be retrieved."}
+              </p>
             </div>
             <Button
               type="button"
@@ -179,20 +187,26 @@ export default function CheckoutPage() {
 
   // Determine current active view based on real session status
   const currentStatus = session.status || status;
-  let activeView: 'default' | 'processing' | 'success' | 'failed' | 'expired' | 'cancelled' = 'default';
+  let activeView:
+    | "default"
+    | "processing"
+    | "success"
+    | "failed"
+    | "expired"
+    | "cancelled" = "default";
 
-  if (currentStatus === 'PROCESSING') {
-    activeView = 'processing';
-  } else if (currentStatus === 'COMPLETED') {
-    activeView = 'success';
-  } else if (currentStatus === 'FAILED') {
-    activeView = 'failed';
-  } else if (currentStatus === 'EXPIRED') {
-    activeView = 'expired';
-  } else if (currentStatus === 'CANCELLED') {
-    activeView = 'cancelled';
+  if (currentStatus === "PROCESSING") {
+    activeView = "processing";
+  } else if (currentStatus === "COMPLETED") {
+    activeView = "success";
+  } else if (currentStatus === "FAILED") {
+    activeView = "failed";
+  } else if (currentStatus === "EXPIRED") {
+    activeView = "expired";
+  } else if (currentStatus === "CANCELLED") {
+    activeView = "cancelled";
   } else {
-    activeView = 'default';
+    activeView = "default";
   }
 
   return (
@@ -210,10 +224,12 @@ export default function CheckoutPage() {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-blue-50 border border-blue-200/60 text-blue-700 text-[11px] font-semibold tracking-wider font-mono">
+              {/* <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-blue-50 border border-blue-200/60 text-blue-700 text-[11px] font-semibold tracking-wider font-mono">
                 TEST MODE
-              </span>
-              {!['COMPLETED', 'CANCELLED', 'EXPIRED', 'PROCESSING'].includes(currentStatus) && (
+              </span> */}
+              {!["COMPLETED", "CANCELLED", "EXPIRED", "PROCESSING"].includes(
+                currentStatus,
+              ) && (
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <button
@@ -227,9 +243,12 @@ export default function CheckoutPage() {
                   </AlertDialogTrigger>
                   <AlertDialogContent className="bg-white border-slate-200 text-slate-900">
                     <AlertDialogHeader>
-                      <AlertDialogTitle className="text-slate-900">Cancel Checkout?</AlertDialogTitle>
+                      <AlertDialogTitle className="text-slate-900">
+                        Cancel Checkout?
+                      </AlertDialogTitle>
                       <AlertDialogDescription className="text-slate-500">
-                        Are you sure you want to cancel this checkout session? This action cannot be undone.
+                        Are you sure you want to cancel this checkout session?
+                        This action cannot be undone.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -264,7 +283,7 @@ export default function CheckoutPage() {
           {/* CARD BODY: SWITCHABLE STATES */}
           <div className="flex flex-col">
             {/* STATE 1: DEFAULT CHECKOUT FORM */}
-            {activeView === 'default' && (
+            {activeView === "default" && (
               <CustomerDetailsForm
                 session={session}
                 onSubmitPayment={handlePaymentSubmit}
@@ -274,7 +293,7 @@ export default function CheckoutPage() {
             )}
 
             {/* STATE 2: PROCESSING (USSD PUSH) */}
-            {activeView === 'processing' && (
+            {activeView === "processing" && (
               <CheckoutProcessing
                 session={session}
                 phone={submittedPhone}
@@ -283,36 +302,48 @@ export default function CheckoutPage() {
                   try {
                     const res = await simulateCheckoutApproval(publicToken);
                     setStatus(res.status);
-                    setSession((prev) => (prev ? { ...prev, status: res.status } : null));
+                    setSession((prev) =>
+                      prev ? { ...prev, status: res.status } : null,
+                    );
                   } catch (err: any) {
-                    alert(err?.message || 'Simulation failed');
+                    alert(err?.message || "Simulation failed");
                   }
                 }}
                 onSimulateFailed={async () => {
                   try {
                     const res = await simulateCheckoutTimeout(publicToken);
                     setStatus(res.status);
-                    setSession((prev) => (prev ? { ...prev, status: res.status, failureReason: 'Handset authorization timed out' } : null));
+                    setSession((prev) =>
+                      prev
+                        ? {
+                            ...prev,
+                            status: res.status,
+                            failureReason: "Handset authorization timed out",
+                          }
+                        : null,
+                    );
                   } catch (err: any) {
-                    alert(err?.message || 'Simulation failed');
+                    alert(err?.message || "Simulation failed");
                   }
                 }}
               />
             )}
 
             {/* STATE 3: SUCCESS */}
-            {activeView === 'success' && (
+            {activeView === "success" && (
               <CheckoutSuccess
                 session={session}
                 phone={submittedPhone}
-                providerName={PROVIDER_MAP[submittedProvider]?.shortName || 'Mobile Money'}
+                providerName={
+                  PROVIDER_MAP[submittedProvider]?.shortName || "Mobile Money"
+                }
                 providerLogoUrl={PROVIDER_MAP[submittedProvider]?.logoUrl}
                 onResetState={handleResetToDefault}
               />
             )}
 
             {/* STATE 4: FAILED */}
-            {activeView === 'failed' && (
+            {activeView === "failed" && (
               <CheckoutFailed
                 session={session}
                 failureReason={failureReason || session.failureReason}
@@ -322,7 +353,7 @@ export default function CheckoutPage() {
             )}
 
             {/* STATE 5: EXPIRED */}
-            {activeView === 'expired' && (
+            {activeView === "expired" && (
               <CheckoutExpired
                 session={session}
                 onRestart={handleResetToDefault}
@@ -330,7 +361,7 @@ export default function CheckoutPage() {
             )}
 
             {/* STATE 6: CANCELLED */}
-            {activeView === 'cancelled' && (
+            {activeView === "cancelled" && (
               <CheckoutCancelled
                 session={session}
                 onRestart={handleResetToDefault}
@@ -345,7 +376,9 @@ export default function CheckoutPage() {
                 <ShieldCheck className="w-3.5 h-3.5" />
               </div>
               <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="text-slate-900 font-semibold">Secured by Reignova</span>
+                <span className="text-slate-900 font-semibold">
+                  Secured by Reignova
+                </span>
                 <span className="text-slate-300">•</span>
               </div>
             </div>
