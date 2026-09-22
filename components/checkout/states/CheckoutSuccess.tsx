@@ -121,7 +121,7 @@ export function CheckoutSuccess({
 
       {/* Action Buttons */}
       <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
-        {/* {returnUrl ? (
+        {returnUrl ? (
           <Button
             type="button"
             onClick={() => (window.location.href = returnUrl)}
@@ -130,15 +130,16 @@ export function CheckoutSuccess({
             <span>Return to Merchant ({countdown}s)</span>
             <ArrowRight className="w-4 h-4 ml-1.5" />
           </Button>
-        ) : onResetState ? (
-          <button
-            type="button"
-            onClick={onResetState}
-            className="px-6 py-2.5 rounded-xl bg-brand-gold hover:bg-brand-gold-hover text-brand-navy-900 font-bold text-sm shadow-md transition-all"
-          >
-            Return to Checkout Home
-          </button>
-        ) : null} */}
+        ) : // : onResetState ? (
+        //   <button
+        //     type="button"
+        //     onClick={onResetState}
+        //     className="px-6 py-2.5 rounded-xl bg-brand-gold hover:bg-brand-gold-hover text-brand-navy-900 font-bold text-sm shadow-md transition-all"
+        //   >
+        //     Return to Checkout Home
+        //   </button>
+        // )
+        null}
 
         <a
           href={`${API_BASE_URL}/checkouts/public/${session.publicToken}/receipt?download=true`}
