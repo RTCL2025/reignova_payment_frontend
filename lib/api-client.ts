@@ -1,5 +1,6 @@
 export const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
+  process.env.NEXT_PUBLIC_API_URL ||
+  "https://pay-api.reignovatechnologies.com/api/v1";
 
 const BASE_URL = API_BASE_URL;
 
@@ -8,9 +9,14 @@ export class ApiError extends Error {
   public errorCode: string;
   public details?: unknown;
 
-  constructor(message: string, statusCode: number, errorCode: string = 'API_ERROR', details?: unknown) {
+  constructor(
+    message: string,
+    statusCode: number,
+    errorCode: string = "API_ERROR",
+    details?: unknown,
+  ) {
     super(message);
-    this.name = 'ApiError';
+    this.name = "ApiError";
     this.statusCode = statusCode;
     this.errorCode = errorCode;
     this.details = details;
@@ -19,15 +25,15 @@ export class ApiError extends Error {
 
 export async function apiClient<T>(
   endpoint: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
 ): Promise<T> {
-  const cleanBase = BASE_URL.replace(/\/+$/, '');
-  const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  const cleanBase = BASE_URL.replace(/\/+$/, "");
+  const cleanEndpoint = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
   const url = `${cleanBase}${cleanEndpoint}`;
 
   const defaultHeaders: HeadersInit = {
-    'Content-Type': 'application/json',
-    Accept: 'application/json',
+    "Content-Type": "application/json",
+    Accept: "application/json",
   };
 
   const response = await fetch(url, {
@@ -37,7 +43,7 @@ export async function apiClient<T>(
       ...options.headers,
     },
     // Avoid caching for status and dynamic queries
-    cache: 'no-store',
+    cache: "no-store",
   });
 
   const data = await response.json().catch(() => null);
@@ -47,7 +53,7 @@ export async function apiClient<T>(
       data?.error?.message ||
       data?.message ||
       `Request failed with status ${response.status}`;
-    const code = data?.error?.code || 'ERROR';
+    const code = data?.error?.code || "ERROR";
     throw new ApiError(message, response.status, code, data?.error?.details);
   }
 

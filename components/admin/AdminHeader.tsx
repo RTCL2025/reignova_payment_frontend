@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect, useCallback } from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import React, { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   Menu,
   Search,
@@ -11,10 +11,10 @@ import {
   AlertCircle,
   ExternalLink,
   ChevronRight,
-} from 'lucide-react';
-import { CommandSearchDialog } from './CommandSearchDialog';
-import { cn } from '@/lib/utils';
-import { adminApiClient } from '@/lib/admin-api';
+} from "lucide-react";
+import { CommandSearchDialog } from "./CommandSearchDialog";
+import { cn } from "@/lib/utils";
+import { adminApiClient } from "@/lib/admin-api";
 
 interface AdminHeaderProps {
   onOpenMobileMenu: () => void;
@@ -22,7 +22,7 @@ interface AdminHeaderProps {
 
 interface HeaderNotificationItem {
   id: string;
-  type: 'amber' | 'emerald' | 'rose' | 'slate';
+  type: "amber" | "emerald" | "rose" | "slate";
   title: string;
   description: string;
   href: string;
@@ -33,9 +33,15 @@ export function AdminHeader({ onOpenMobileMenu }: AdminHeaderProps) {
   const pathname = usePathname();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
-  const [isBackendHealthy, setIsBackendHealthy] = useState<boolean | null>(null);
-  const [merchantNames, setMerchantNames] = useState<Record<string, string>>({});
-  const [notifications, setNotifications] = useState<HeaderNotificationItem[]>([]);
+  const [isBackendHealthy, setIsBackendHealthy] = useState<boolean | null>(
+    null,
+  );
+  const [merchantNames, setMerchantNames] = useState<Record<string, string>>(
+    {},
+  );
+  const [notifications, setNotifications] = useState<HeaderNotificationItem[]>(
+    [],
+  );
   const [pendingCount, setPendingCount] = useState<number>(0);
 
   // Load live notification alerts from backend
@@ -51,19 +57,23 @@ export function AdminHeader({ onOpenMobileMenu }: AdminHeaderProps) {
 
       // 1. Pending/Requested Refunds requiring approval
       const pendingRefunds = (refundsRes.refunds || []).filter(
-        (r) => r.status === 'REQUESTED' || r.status === 'UNDER_REVIEW'
+        (r) => r.status === "REQUESTED" || r.status === "UNDER_REVIEW",
       );
 
       pendingRefunds.forEach((r) => {
-        const appName = r.applicationName || 'Application';
-        const refStr = r.originalPaymentRef || (r.paymentId ? r.paymentId.substring(0, 8) : r.id.substring(0, 8));
-        const amountStr = r.amount ? `${r.amount.toLocaleString()} ${r.currency || 'TZS'}` : '';
+        const appName = r.applicationName || "Application";
+        const refStr =
+          r.originalPaymentRef ||
+          (r.paymentId ? r.paymentId.substring(0, 8) : r.id.substring(0, 8));
+        const amountStr = r.amount
+          ? `${r.amount.toLocaleString()} ${r.currency || "TZS"}`
+          : "";
         items.push({
           id: `refund-${r.id}`,
-          type: 'amber',
-          title: 'Refund Request Awaiting Approval',
-          description: `${appName} (ref: ${refStr})${amountStr ? ` for ${amountStr}` : ''}.`,
-          href: '/admin/refunds',
+          type: "amber",
+          title: "Refund Request Awaiting Approval",
+          description: `${appName} (ref: ${refStr})${amountStr ? ` for ${amountStr}` : ""}.`,
+          href: "/admin/refunds",
           timestamp: r.createdAt,
         });
       });
@@ -71,30 +81,30 @@ export function AdminHeader({ onOpenMobileMenu }: AdminHeaderProps) {
       // 2. Suspended Merchants Alert
       if (metricsRes.suspendedMerchants > 0) {
         items.push({
-          id: 'suspended-merchants-notice',
-          type: 'rose',
-          title: 'Merchant Compliance Notice',
-          description: `${metricsRes.suspendedMerchants} merchant ${metricsRes.suspendedMerchants === 1 ? 'account is' : 'accounts are'} currently suspended.`,
-          href: '/admin/merchants',
+          id: "suspended-merchants-notice",
+          type: "rose",
+          title: "Merchant Compliance Notice",
+          description: `${metricsRes.suspendedMerchants} merchant ${metricsRes.suspendedMerchants === 1 ? "account is" : "accounts are"} currently suspended.`,
+          href: "/admin/merchants",
         });
       }
 
       // 3. Recent Live Audit Events
       (auditRes.logs || []).slice(0, 3).forEach((log) => {
         const actionFormatted = log.action
-          .replace(/_/g, ' ')
+          .replace(/_/g, " ")
           .toLowerCase()
           .replace(/\b\w/g, (c) => c.toUpperCase());
-        const actorName = log.actor || 'System Admin';
+        const actorName = log.actor || "System Admin";
         const resourceStr = log.resourceType
-          ? `${log.resourceType.toLowerCase()} (${(log.resourceId || '').substring(0, 8)})`
-          : 'resource';
+          ? `${log.resourceType.toLowerCase()} (${(log.resourceId || "").substring(0, 8)})`
+          : "resource";
         items.push({
           id: `audit-${log.id}`,
-          type: 'slate',
+          type: "slate",
           title: actionFormatted,
           description: `Action by ${actorName} on ${resourceStr}.`,
-          href: '/admin/audit-logs',
+          href: "/admin/audit-logs",
           timestamp: log.createdAt,
         });
       });
@@ -102,18 +112,20 @@ export function AdminHeader({ onOpenMobileMenu }: AdminHeaderProps) {
       // 4. Default healthy state if no pending alerts or logs
       if (items.length === 0) {
         items.push({
-          id: 'system-healthy',
-          type: 'emerald',
-          title: 'All Systems Operational',
+          id: "system-healthy",
+          type: "emerald",
+          title: "All Systems Operational",
           description: `Live monitoring across ${metricsRes.activeMerchants || 0} registered applications.`,
-          href: '/admin',
+          href: "/admin",
         });
       }
 
       setNotifications(items);
-      setPendingCount(pendingRefunds.length + (metricsRes.suspendedMerchants > 0 ? 1 : 0));
+      setPendingCount(
+        pendingRefunds.length + (metricsRes.suspendedMerchants > 0 ? 1 : 0),
+      );
     } catch (err) {
-      console.error('Failed to load notifications from live API:', err);
+      console.error("Failed to load notifications from live API:", err);
     }
   }, []);
 
@@ -127,7 +139,10 @@ export function AdminHeader({ onOpenMobileMenu }: AdminHeaderProps) {
   useEffect(() => {
     async function checkHealth() {
       try {
-        const res = await fetch('http://localhost:5000/health', { method: 'GET' });
+        const res = await fetch(
+          "https://pay-api.reignovatechnologies.com/health",
+          { method: "GET" },
+        );
         setIsBackendHealthy(res.ok);
       } catch {
         setIsBackendHealthy(false);
@@ -140,11 +155,12 @@ export function AdminHeader({ onOpenMobileMenu }: AdminHeaderProps) {
 
   // Compute breadcrumbs
   const segments = pathname
-    .split('/')
+    .split("/")
     .filter(Boolean)
-    .filter((s) => s !== 'admin');
+    .filter((s) => s !== "admin");
 
-  const merchantId = segments[0] === 'merchants' && segments[1] ? segments[1] : null;
+  const merchantId =
+    segments[0] === "merchants" && segments[1] ? segments[1] : null;
 
   useEffect(() => {
     if (!merchantId || merchantNames[merchantId]) return;
@@ -162,14 +178,14 @@ export function AdminHeader({ onOpenMobileMenu }: AdminHeaderProps) {
   }, [merchantId, merchantNames]);
 
   const breadcrumbs = [
-    { label: 'Admin', href: '/admin' },
+    { label: "Admin", href: "/admin" },
     ...segments.map((seg, idx) => {
-      const href = '/admin/' + segments.slice(0, idx + 1).join('/');
+      const href = "/admin/" + segments.slice(0, idx + 1).join("/");
       let label = seg
-        .replace(/-/g, ' ')
+        .replace(/-/g, " ")
         .replace(/\b\w/g, (c) => c.toUpperCase());
 
-      if (idx === 1 && segments[0] === 'merchants' && merchantNames[seg]) {
+      if (idx === 1 && segments[0] === "merchants" && merchantNames[seg]) {
         label = merchantNames[seg];
       }
 
@@ -195,9 +211,13 @@ export function AdminHeader({ onOpenMobileMenu }: AdminHeaderProps) {
               const isLast = i === breadcrumbs.length - 1;
               return (
                 <React.Fragment key={b.href}>
-                  {i > 0 && <ChevronRight className="size-3 text-slate-300 shrink-0" />}
+                  {i > 0 && (
+                    <ChevronRight className="size-3 text-slate-300 shrink-0" />
+                  )}
                   {isLast ? (
-                    <span className="text-slate-900 font-semibold">{b.label}</span>
+                    <span className="text-slate-900 font-semibold">
+                      {b.label}
+                    </span>
                   ) : (
                     <Link
                       href={b.href}
@@ -231,15 +251,15 @@ export function AdminHeader({ onOpenMobileMenu }: AdminHeaderProps) {
           <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-mono border bg-slate-50 border-slate-200 text-slate-600">
             <span
               className={cn(
-                'size-2 rounded-full',
+                "size-2 rounded-full",
                 isBackendHealthy === true
-                  ? 'bg-emerald-500'
+                  ? "bg-emerald-500"
                   : isBackendHealthy === false
-                  ? 'bg-rose-500'
-                  : 'bg-amber-400'
+                    ? "bg-rose-500"
+                    : "bg-amber-400",
               )}
             />
-            <span>API {isBackendHealthy ? 'Online' : 'Degraded'}</span>
+            <span>API {isBackendHealthy ? "Online" : "Degraded"}</span>
           </div>
 
           {/* Notifications Trigger & Dropdown */}
@@ -266,21 +286,23 @@ export function AdminHeader({ onOpenMobileMenu }: AdminHeaderProps) {
                   </span>
                   <span
                     className={cn(
-                      'text-[10px] font-mono px-1.5 py-0.5 rounded-sm border',
+                      "text-[10px] font-mono px-1.5 py-0.5 rounded-sm border",
                       pendingCount > 0
-                        ? 'text-amber-700 bg-amber-50 border-amber-200'
-                        : 'text-emerald-700 bg-emerald-50 border-emerald-200'
+                        ? "text-amber-700 bg-amber-50 border-amber-200"
+                        : "text-emerald-700 bg-emerald-50 border-emerald-200",
                     )}
                   >
-                    {pendingCount > 0 ? `${pendingCount} Pending` : 'All Healthy'}
+                    {pendingCount > 0
+                      ? `${pendingCount} Pending`
+                      : "All Healthy"}
                   </span>
                 </div>
 
                 <div className="space-y-2 text-xs max-h-72 overflow-y-auto">
                   {notifications.map((item) => {
-                    const isAmber = item.type === 'amber';
-                    const isRose = item.type === 'rose';
-                    const isEmerald = item.type === 'emerald';
+                    const isAmber = item.type === "amber";
+                    const isRose = item.type === "rose";
+                    const isEmerald = item.type === "emerald";
 
                     return (
                       <Link
@@ -288,11 +310,17 @@ export function AdminHeader({ onOpenMobileMenu }: AdminHeaderProps) {
                         href={item.href}
                         onClick={() => setIsNotificationsOpen(false)}
                         className={cn(
-                          'p-2 rounded-lg border flex items-start gap-2.5 transition-colors block',
-                          isAmber && 'bg-amber-50/70 border-amber-200/80 hover:bg-amber-100/70',
-                          isRose && 'bg-rose-50/70 border-rose-200/80 hover:bg-rose-100/70',
-                          isEmerald && 'bg-emerald-50/70 border-emerald-200/80 hover:bg-emerald-100/70',
-                          !isAmber && !isRose && !isEmerald && 'bg-slate-50 border-slate-200 hover:bg-slate-100'
+                          "p-2 rounded-lg border flex items-start gap-2.5 transition-colors block",
+                          isAmber &&
+                            "bg-amber-50/70 border-amber-200/80 hover:bg-amber-100/70",
+                          isRose &&
+                            "bg-rose-50/70 border-rose-200/80 hover:bg-rose-100/70",
+                          isEmerald &&
+                            "bg-emerald-50/70 border-emerald-200/80 hover:bg-emerald-100/70",
+                          !isAmber &&
+                            !isRose &&
+                            !isEmerald &&
+                            "bg-slate-50 border-slate-200 hover:bg-slate-100",
                         )}
                       >
                         {isAmber ? (
@@ -302,30 +330,36 @@ export function AdminHeader({ onOpenMobileMenu }: AdminHeaderProps) {
                         ) : (
                           <CheckCircle2
                             className={cn(
-                              'size-4 shrink-0 mt-0.5',
-                              isEmerald ? 'text-emerald-600' : 'text-slate-600'
+                              "size-4 shrink-0 mt-0.5",
+                              isEmerald ? "text-emerald-600" : "text-slate-600",
                             )}
                           />
                         )}
                         <div className="min-w-0 flex-1">
                           <div
                             className={cn(
-                              'font-semibold truncate',
-                              isAmber && 'text-amber-900',
-                              isRose && 'text-rose-900',
-                              isEmerald && 'text-emerald-900',
-                              !isAmber && !isRose && !isEmerald && 'text-slate-800'
+                              "font-semibold truncate",
+                              isAmber && "text-amber-900",
+                              isRose && "text-rose-900",
+                              isEmerald && "text-emerald-900",
+                              !isAmber &&
+                                !isRose &&
+                                !isEmerald &&
+                                "text-slate-800",
                             )}
                           >
                             {item.title}
                           </div>
                           <div
                             className={cn(
-                              'text-[11px] mt-0.5 leading-tight',
-                              isAmber && 'text-amber-700',
-                              isRose && 'text-rose-700',
-                              isEmerald && 'text-emerald-700',
-                              !isAmber && !isRose && !isEmerald && 'text-slate-500'
+                              "text-[11px] mt-0.5 leading-tight",
+                              isAmber && "text-amber-700",
+                              isRose && "text-rose-700",
+                              isEmerald && "text-emerald-700",
+                              !isAmber &&
+                                !isRose &&
+                                !isEmerald &&
+                                "text-slate-500",
                             )}
                           >
                             {item.description}

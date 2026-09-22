@@ -6,24 +6,32 @@ import {
   CheckoutSession,
   AuditLog,
   OverviewMetrics,
-} from '@/types/admin';
+} from "@/types/admin";
 
 export interface AdminSearchResultItem {
   id: string;
   title: string;
   subtitle: string;
-  category: 'Merchants' | 'Payments' | 'Refunds' | 'Payouts' | 'Checkout Sessions' | 'Audit Logs';
+  category:
+    | "Merchants"
+    | "Payments"
+    | "Refunds"
+    | "Payouts"
+    | "Checkout Sessions"
+    | "Audit Logs";
   href: string;
   badge?: string;
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  "https://pay-api.reignovatechnologies.com/api/v1";
 
 function getHeaders(customApiKey?: string): HeadersInit {
   let effectiveKey = customApiKey;
-  if (!effectiveKey && typeof window !== 'undefined') {
+  if (!effectiveKey && typeof window !== "undefined") {
     try {
-      const stored = localStorage.getItem('reignova_admin_session');
+      const stored = localStorage.getItem("reignova_admin_session");
       if (stored) {
         const parsed = JSON.parse(stored);
         effectiveKey = parsed.token || parsed.apiKey;
@@ -34,12 +42,12 @@ function getHeaders(customApiKey?: string): HeadersInit {
   }
 
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   };
 
   if (effectiveKey) {
-    headers['Admin-Api-Key'] = effectiveKey;
-    headers['Authorization'] = `Bearer ${effectiveKey}`;
+    headers["Admin-Api-Key"] = effectiveKey;
+    headers["Authorization"] = `Bearer ${effectiveKey}`;
   }
 
   return headers;
@@ -51,22 +59,34 @@ export const adminApiClient = {
     async list(
       page = 1,
       limit = 20,
-      apiKey?: string
-    ): Promise<{ applications: Application[]; total: number; isLive: boolean }> {
+      apiKey?: string,
+    ): Promise<{
+      applications: Application[];
+      total: number;
+      isLive: boolean;
+    }> {
       try {
-        const res = await fetch(`${API_BASE_URL}/admin/applications?page=${page}&limit=${limit}`, {
-          headers: getHeaders(apiKey),
-          cache: 'no-store',
-        });
+        const res = await fetch(
+          `${API_BASE_URL}/admin/applications?page=${page}&limit=${limit}`,
+          {
+            headers: getHeaders(apiKey),
+            cache: "no-store",
+          },
+        );
         if (res.ok) {
           const json = await res.json();
-          const items: Application[] = (json.data || json.applications || []).map((app: any) => ({
+          const items: Application[] = (
+            json.data ||
+            json.applications ||
+            []
+          ).map((app: any) => ({
             id: app.id,
             name: app.name,
             slug: app.slug,
             description: app.description,
-            apiKeyPrefix: app.apiKeyPrefix || app.api_key_prefix || 'sk_live_app',
-            status: app.status || 'ACTIVE',
+            apiKeyPrefix:
+              app.apiKeyPrefix || app.api_key_prefix || "sk_live_app",
+            status: app.status || "ACTIVE",
             webhookUrl: app.webhookUrl || app.webhook_url,
             webhookSecret: app.webhookSecret || app.webhook_secret,
             createdAt: app.createdAt || app.created_at,
@@ -81,7 +101,7 @@ export const adminApiClient = {
           };
         }
       } catch (err) {
-        console.error('Failed to fetch merchants from live API:', err);
+        console.error("Failed to fetch merchants from live API:", err);
       }
       return { applications: [], total: 0, isLive: false };
     },
@@ -99,8 +119,9 @@ export const adminApiClient = {
             name: app.name,
             slug: app.slug,
             description: app.description,
-            apiKeyPrefix: app.apiKeyPrefix || app.api_key_prefix || 'sk_live_app',
-            status: app.status || 'ACTIVE',
+            apiKeyPrefix:
+              app.apiKeyPrefix || app.api_key_prefix || "sk_live_app",
+            status: app.status || "ACTIVE",
             webhookUrl: app.webhookUrl || app.webhook_url,
             webhookSecret: app.webhookSecret || app.webhook_secret,
             createdAt: app.createdAt || app.created_at,
@@ -121,30 +142,44 @@ export const adminApiClient = {
         webhookUrl?: string;
         webhookSecret?: string;
       },
-      apiKey?: string
-    ): Promise<{ application: Application; apiKey: string; webhookSecret?: string }> {
+      apiKey?: string,
+    ): Promise<{
+      application: Application;
+      apiKey: string;
+      webhookSecret?: string;
+    }> {
       const res = await fetch(`${API_BASE_URL}/admin/applications`, {
-        method: 'POST',
+        method: "POST",
         headers: getHeaders(apiKey),
         body: JSON.stringify(data),
       });
 
       if (!res.ok) {
         const errJson = await res.json().catch(() => ({}));
-        throw new Error(errJson.error?.message || errJson.message || 'Failed to create merchant');
+        throw new Error(
+          errJson.error?.message ||
+            errJson.message ||
+            "Failed to create merchant",
+        );
       }
 
       const json = await res.json();
       const created = json.data;
-      const secret = created.webhookSecret || created.webhook_secret || created.application?.webhookSecret;
+      const secret =
+        created.webhookSecret ||
+        created.webhook_secret ||
+        created.application?.webhookSecret;
       return {
         application: {
           id: created.application?.id || created.id,
           name: created.application?.name || created.name,
           slug: created.application?.slug || created.slug,
           description: created.application?.description || created.description,
-          apiKeyPrefix: created.application?.apiKeyPrefix || created.apiKeyPrefix || 'sk_live',
-          status: created.application?.status || 'ACTIVE',
+          apiKeyPrefix:
+            created.application?.apiKeyPrefix ||
+            created.apiKeyPrefix ||
+            "sk_live",
+          status: created.application?.status || "ACTIVE",
           webhookUrl: created.application?.webhookUrl || created.webhookUrl,
           webhookSecret: secret,
           createdAt: created.application?.createdAt || new Date().toISOString(),
@@ -157,15 +192,18 @@ export const adminApiClient = {
 
     async rotateKey(
       id: string,
-      apiKey?: string
+      apiKey?: string,
     ): Promise<{ apiKey: string; apiKeyPrefix: string }> {
-      const res = await fetch(`${API_BASE_URL}/admin/applications/${id}/rotate-key`, {
-        method: 'POST',
-        headers: getHeaders(apiKey),
-      });
+      const res = await fetch(
+        `${API_BASE_URL}/admin/applications/${id}/rotate-key`,
+        {
+          method: "POST",
+          headers: getHeaders(apiKey),
+        },
+      );
       if (!res.ok) {
         const errJson = await res.json().catch(() => ({}));
-        throw new Error(errJson.error?.message || 'Failed to rotate API key');
+        throw new Error(errJson.error?.message || "Failed to rotate API key");
       }
       const json = await res.json();
       return {
@@ -174,26 +212,36 @@ export const adminApiClient = {
       };
     },
 
-    async suspend(id: string, reason?: string, apiKey?: string): Promise<Application> {
-      const res = await fetch(`${API_BASE_URL}/admin/applications/${id}/suspend`, {
-        method: 'POST',
-        headers: getHeaders(apiKey),
-        body: JSON.stringify({ reason }),
-      });
+    async suspend(
+      id: string,
+      reason?: string,
+      apiKey?: string,
+    ): Promise<Application> {
+      const res = await fetch(
+        `${API_BASE_URL}/admin/applications/${id}/suspend`,
+        {
+          method: "POST",
+          headers: getHeaders(apiKey),
+          body: JSON.stringify({ reason }),
+        },
+      );
       if (!res.ok) {
-        throw new Error('Failed to suspend merchant');
+        throw new Error("Failed to suspend merchant");
       }
       const json = await res.json();
       return json.data;
     },
 
     async reactivate(id: string, apiKey?: string): Promise<Application> {
-      const res = await fetch(`${API_BASE_URL}/admin/applications/${id}/reactivate`, {
-        method: 'POST',
-        headers: getHeaders(apiKey),
-      });
+      const res = await fetch(
+        `${API_BASE_URL}/admin/applications/${id}/reactivate`,
+        {
+          method: "POST",
+          headers: getHeaders(apiKey),
+        },
+      );
       if (!res.ok) {
-        throw new Error('Failed to reactivate merchant');
+        throw new Error("Failed to reactivate merchant");
       }
       const json = await res.json();
       return json.data;
@@ -208,19 +256,25 @@ export const adminApiClient = {
       search?: string;
       page?: number;
       limit?: number;
-    }): Promise<{ payments: Payment[]; total: number; isPendingServer: boolean }> {
+    }): Promise<{
+      payments: Payment[];
+      total: number;
+      isPendingServer: boolean;
+    }> {
       try {
         const params = new URLSearchParams();
-        if (filters?.page) params.set('page', String(filters.page));
-        if (filters?.limit) params.set('limit', String(filters.limit));
-        if (filters?.status && filters.status !== 'ALL') params.set('status', filters.status);
-        if (filters?.merchantId && filters.merchantId !== 'ALL') params.set('applicationId', filters.merchantId);
-        if (filters?.search) params.set('search', filters.search);
+        if (filters?.page) params.set("page", String(filters.page));
+        if (filters?.limit) params.set("limit", String(filters.limit));
+        if (filters?.status && filters.status !== "ALL")
+          params.set("status", filters.status);
+        if (filters?.merchantId && filters.merchantId !== "ALL")
+          params.set("applicationId", filters.merchantId);
+        if (filters?.search) params.set("search", filters.search);
 
-        const url = `${API_BASE_URL}/admin/payments${params.toString() ? `?${params.toString()}` : ''}`;
+        const url = `${API_BASE_URL}/admin/payments${params.toString() ? `?${params.toString()}` : ""}`;
         const res = await fetch(url, {
           headers: getHeaders(),
-          cache: 'no-store',
+          cache: "no-store",
         });
         if (res.ok) {
           const json = await res.json();
@@ -231,7 +285,7 @@ export const adminApiClient = {
           };
         }
       } catch (err) {
-        console.error('Failed to fetch payments from live API:', err);
+        console.error("Failed to fetch payments from live API:", err);
       }
 
       return { payments: [], total: 0, isPendingServer: true };
@@ -254,27 +308,37 @@ export const adminApiClient = {
 
     async retry(id: string): Promise<{ success: boolean; message: string }> {
       const res = await fetch(`${API_BASE_URL}/admin/payments/${id}/retry`, {
-        method: 'POST',
+        method: "POST",
         headers: getHeaders(),
       });
       if (!res.ok) {
         const errJson = await res.json().catch(() => ({}));
-        throw new Error(errJson.error?.message || errJson.message || `Payment retry failed for ${id}`);
+        throw new Error(
+          errJson.error?.message ||
+            errJson.message ||
+            `Payment retry failed for ${id}`,
+        );
       }
       const json = await res.json();
-      return { success: true, message: json.data?.message || `Payment retry initiated for ${id}` };
+      return {
+        success: true,
+        message: json.data?.message || `Payment retry initiated for ${id}`,
+      };
     },
 
-    async downloadReceipt(id: string, reference = 'payment'): Promise<void> {
-      const res = await fetch(`${API_BASE_URL}/admin/payments/${id}/receipt?download=true`, {
-        headers: getHeaders(),
-      });
+    async downloadReceipt(id: string, reference = "payment"): Promise<void> {
+      const res = await fetch(
+        `${API_BASE_URL}/admin/payments/${id}/receipt?download=true`,
+        {
+          headers: getHeaders(),
+        },
+      );
       if (!res.ok) {
         throw new Error(`Failed to download receipt for payment ${id}`);
       }
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      const a = document.createElement("a");
       a.href = url;
       a.download = `Receipt-${reference}.pdf`;
       document.body.appendChild(a);
@@ -288,13 +352,16 @@ export const adminApiClient = {
   refunds: {
     async list(
       page = 1,
-      limit = 20
+      limit = 20,
     ): Promise<{ refunds: Refund[]; total: number; isPendingServer: boolean }> {
       try {
-        const res = await fetch(`${API_BASE_URL}/admin/refunds?page=${page}&limit=${limit}`, {
-          headers: getHeaders(),
-          cache: 'no-store',
-        });
+        const res = await fetch(
+          `${API_BASE_URL}/admin/refunds?page=${page}&limit=${limit}`,
+          {
+            headers: getHeaders(),
+            cache: "no-store",
+          },
+        );
         if (res.ok) {
           const json = await res.json();
           return {
@@ -304,32 +371,40 @@ export const adminApiClient = {
           };
         }
       } catch (err) {
-        console.error('Failed to fetch refunds from live API:', err);
+        console.error("Failed to fetch refunds from live API:", err);
       }
       return { refunds: [], total: 0, isPendingServer: true };
     },
 
     async approve(id: string): Promise<{ success: boolean }> {
       const res = await fetch(`${API_BASE_URL}/admin/refunds/${id}/approve`, {
-        method: 'POST',
+        method: "POST",
         headers: getHeaders(),
       });
       if (!res.ok) {
         const errJson = await res.json().catch(() => ({}));
-        throw new Error(errJson.error?.message || errJson.message || `Refund approval failed for ${id}`);
+        throw new Error(
+          errJson.error?.message ||
+            errJson.message ||
+            `Refund approval failed for ${id}`,
+        );
       }
       return { success: true };
     },
 
     async reject(id: string, reason: string): Promise<{ success: boolean }> {
       const res = await fetch(`${API_BASE_URL}/admin/refunds/${id}/reject`, {
-        method: 'POST',
+        method: "POST",
         headers: getHeaders(),
         body: JSON.stringify({ reason }),
       });
       if (!res.ok) {
         const errJson = await res.json().catch(() => ({}));
-        throw new Error(errJson.error?.message || errJson.message || `Refund rejection failed for ${id}`);
+        throw new Error(
+          errJson.error?.message ||
+            errJson.message ||
+            `Refund rejection failed for ${id}`,
+        );
       }
       return { success: true };
     },
@@ -339,13 +414,16 @@ export const adminApiClient = {
   payouts: {
     async list(
       page = 1,
-      limit = 20
+      limit = 20,
     ): Promise<{ payouts: Payout[]; total: number; isPendingServer: boolean }> {
       try {
-        const res = await fetch(`${API_BASE_URL}/admin/payouts?page=${page}&limit=${limit}`, {
-          headers: getHeaders(),
-          cache: 'no-store',
-        });
+        const res = await fetch(
+          `${API_BASE_URL}/admin/payouts?page=${page}&limit=${limit}`,
+          {
+            headers: getHeaders(),
+            cache: "no-store",
+          },
+        );
         if (res.ok) {
           const json = await res.json();
           return {
@@ -355,7 +433,7 @@ export const adminApiClient = {
           };
         }
       } catch (err) {
-        console.error('Failed to fetch payouts from live API:', err);
+        console.error("Failed to fetch payouts from live API:", err);
       }
       return { payouts: [], total: 0, isPendingServer: true };
     },
@@ -380,17 +458,20 @@ export const adminApiClient = {
   checkoutSessions: {
     async list(
       page = 1,
-      limit = 20
+      limit = 20,
     ): Promise<{
       sessions: CheckoutSession[];
       total: number;
       isPendingServer: boolean;
     }> {
       try {
-        const res = await fetch(`${API_BASE_URL}/admin/checkout-sessions?page=${page}&limit=${limit}`, {
-          headers: getHeaders(),
-          cache: 'no-store',
-        });
+        const res = await fetch(
+          `${API_BASE_URL}/admin/checkout-sessions?page=${page}&limit=${limit}`,
+          {
+            headers: getHeaders(),
+            cache: "no-store",
+          },
+        );
         if (res.ok) {
           const json = await res.json();
           return {
@@ -400,7 +481,7 @@ export const adminApiClient = {
           };
         }
       } catch (err) {
-        console.error('Failed to fetch checkout sessions from live API:', err);
+        console.error("Failed to fetch checkout sessions from live API:", err);
       }
       return {
         sessions: [],
@@ -411,9 +492,12 @@ export const adminApiClient = {
 
     async get(id: string): Promise<CheckoutSession | null> {
       try {
-        const res = await fetch(`${API_BASE_URL}/admin/checkout-sessions/${id}`, {
-          headers: getHeaders(),
-        });
+        const res = await fetch(
+          `${API_BASE_URL}/admin/checkout-sessions/${id}`,
+          {
+            headers: getHeaders(),
+          },
+        );
         if (res.ok) {
           const json = await res.json();
           return json.data || null;
@@ -436,16 +520,17 @@ export const adminApiClient = {
     }): Promise<{ logs: AuditLog[]; total: number; isPendingServer: boolean }> {
       try {
         const params = new URLSearchParams();
-        if (filters?.page) params.set('page', String(filters.page));
-        if (filters?.limit) params.set('limit', String(filters.limit));
-        if (filters?.action && filters.action !== 'ALL') params.set('action', filters.action);
-        if (filters?.actor) params.set('actor', filters.actor);
-        if (filters?.search) params.set('search', filters.search);
+        if (filters?.page) params.set("page", String(filters.page));
+        if (filters?.limit) params.set("limit", String(filters.limit));
+        if (filters?.action && filters.action !== "ALL")
+          params.set("action", filters.action);
+        if (filters?.actor) params.set("actor", filters.actor);
+        if (filters?.search) params.set("search", filters.search);
 
-        const url = `${API_BASE_URL}/admin/audit-logs${params.toString() ? `?${params.toString()}` : ''}`;
+        const url = `${API_BASE_URL}/admin/audit-logs${params.toString() ? `?${params.toString()}` : ""}`;
         const res = await fetch(url, {
           headers: getHeaders(),
-          cache: 'no-store',
+          cache: "no-store",
         });
         if (res.ok) {
           const json = await res.json();
@@ -456,7 +541,7 @@ export const adminApiClient = {
           };
         }
       } catch (err) {
-        console.error('Failed to fetch audit logs from live API:', err);
+        console.error("Failed to fetch audit logs from live API:", err);
       }
 
       return { logs: [], total: 0, isPendingServer: true };
@@ -500,14 +585,14 @@ export const adminApiClient = {
       try {
         const res = await fetch(`${API_BASE_URL}/admin/stats`, {
           headers: getHeaders(),
-          cache: 'no-store',
+          cache: "no-store",
         });
         if (res.ok) {
           const json = await res.json();
           return json.data || emptyMetrics;
         }
       } catch (err) {
-        console.error('Failed to fetch overview metrics from live API:', err);
+        console.error("Failed to fetch overview metrics from live API:", err);
       }
       return emptyMetrics;
     },
@@ -518,16 +603,19 @@ export const adminApiClient = {
     async query(q: string): Promise<AdminSearchResultItem[]> {
       if (!q || !q.trim()) return [];
       try {
-        const res = await fetch(`${API_BASE_URL}/admin/search?q=${encodeURIComponent(q.trim())}`, {
-          headers: getHeaders(),
-          cache: 'no-store',
-        });
+        const res = await fetch(
+          `${API_BASE_URL}/admin/search?q=${encodeURIComponent(q.trim())}`,
+          {
+            headers: getHeaders(),
+            cache: "no-store",
+          },
+        );
         if (res.ok) {
           const json = await res.json();
           return json.data || [];
         }
       } catch (err) {
-        console.error('Failed to execute admin search from live API:', err);
+        console.error("Failed to execute admin search from live API:", err);
       }
       return [];
     },
