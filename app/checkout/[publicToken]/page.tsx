@@ -7,8 +7,6 @@ import {
   initiatePayment,
   cancelCheckoutSession,
   getCheckoutStatus,
-  simulateCheckoutApproval,
-  simulateCheckoutTimeout,
 } from "@/lib/checkout-api";
 import { useCheckoutStatus } from "@/hooks/use-checkout-status";
 import { MerchantSummary } from "@/components/checkout/MerchantSummary";

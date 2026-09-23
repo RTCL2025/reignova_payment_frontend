@@ -1,6 +1,6 @@
 import React from 'react';
 import { DocsLayout } from '@/components/docs/DocsLayout';
-import { TestTube, Play, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { TestTube, Play, CheckCircle, XCircle, Clock, AlertTriangle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 export const metadata = {
@@ -52,18 +52,23 @@ export default function TestingPage() {
       </section>
 
       <section id="simulation" className="space-y-4 pt-6 border-t border-slate-200">
-        <h2 className="text-xl font-bold text-slate-900">Simulated Testing Endpoints</h2>
+        <h2 className="text-xl font-bold text-slate-900">Driving Payment Outcomes</h2>
         <p className="text-slate-700">
-          You can manually trigger state changes in Sandbox mode using simulation endpoints:
+          Outcomes are driven through the provider, not through the API. Initiate a
+          normal deposit against a sandbox test number and pawaPay settles it for you,
+          delivering the same callback your production integration will receive.
         </p>
-        <div className="bg-[#0F1A25] border border-slate-800 rounded-xl p-4 font-mono text-xs space-y-3 text-slate-200">
+        <div className="p-4 rounded-xl bg-amber-50 border border-amber-300 flex items-start gap-3 text-xs">
+          <AlertTriangle className="size-5 text-amber-600 shrink-0 mt-0.5" />
           <div>
-            <span className="text-emerald-400 font-bold">// Force Instant Approval</span>
-            <div className="mt-1">POST /api/v1/checkouts/public/:publicToken/simulate-approval</div>
-          </div>
-          <div className="pt-2 border-t border-slate-800">
-            <span className="text-amber-400 font-bold">// Force Session Timeout</span>
-            <div className="mt-1">POST /api/v1/checkouts/public/:publicToken/simulate-timeout</div>
+            <h4 className="font-bold text-amber-900 text-sm">
+              The simulate-approval and simulate-timeout endpoints were removed
+            </h4>
+            <p className="text-slate-700 mt-1 leading-relaxed">
+              They were reachable without authentication, and a checkout link is given
+              to every payer — so anyone could have driven their own checkout to
+              COMPLETED without paying. Use the sandbox test numbers above instead.
+            </p>
           </div>
         </div>
       </section>
