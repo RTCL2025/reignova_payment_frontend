@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Ticket, CheckCircle2, Timer, Info, X, Building2 } from 'lucide-react';
 import { formatCurrency, formatTimeRemaining } from '@/lib/formatters';
 import type { CheckoutMerchant } from '@/types/checkout';
@@ -54,19 +54,53 @@ export function MerchantSummary({
   const [timeLeft, setTimeLeft] = useState(() => (expiresAt ? formatTimeRemaining(expiresAt) : null));
   const [imgError, setImgError] = useState(false);
 
+  // Held in a ref because callers pass an inline arrow, so its identity changes
+  // on every parent render. With it in the dependency array the effect re-ran
+  // each render, and since the effect calls updateTimer() immediately, an
+  // already-expired session fired onExpire on every render — the parent set
+  // state, re-rendered, and the cycle repeated until React bailed out with
+  // "Maximum update depth exceeded".
+  const onExpireRef = useRef(onExpire);
+  useEffect(() => {
+    onExpireRef.current = onExpire;
+  }, [onExpire]);
+
+  const hasNotifiedExpiry = useRef(false);
+
   useEffect(() => {
     if (!expiresAt) return;
+
+    hasNotifiedExpiry.current = false;
+    let interval: ReturnType<typeof setInterval> | null = null;
+
+    const stop = () => {
+      if (interval) {
+        clearInterval(interval);
+        interval = null;
+      }
+    };
+
     const updateTimer = () => {
       const remaining = formatTimeRemaining(expiresAt);
       setTimeLeft(remaining);
+
       if (remaining.isExpired) {
-        onExpire?.();
+        // Expiry is a one-shot event, and there is nothing left to count down.
+        stop();
+        if (!hasNotifiedExpiry.current) {
+          hasNotifiedExpiry.current = true;
+          onExpireRef.current?.();
+        }
       }
     };
+
     updateTimer();
-    const interval = setInterval(updateTimer, 1000);
-    return () => clearInterval(interval);
-  }, [expiresAt, onExpire]);
+    if (!formatTimeRemaining(expiresAt).isExpired) {
+      interval = setInterval(updateTimer, 1000);
+    }
+
+    return stop;
+  }, [expiresAt]);
 
   // Extract title: explicit prop > metadata > reason > description > reference
   const derivedTitle =
