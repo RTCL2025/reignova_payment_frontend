@@ -12,37 +12,53 @@ export function WebhookPreview() {
 
 // Express or Next.js App Router API Route
 export async function POST(req: Request) {
-  // 1. Extract signature from X-Payment-Signature header
-  const signature = req.headers.get('X-Payment-Signature');
-  if (!signature) {
+  // 1. Header format is: t=<unix_seconds>,v1=<hex_sha256>
+  const header = req.headers.get('X-Payment-Signature');
+  if (!header) {
     return new Response('Missing Signature', { status: 401 });
   }
 
-  // 2. Read raw unparsed body string (Do NOT parse JSON first)
+  const parts = Object.fromEntries(
+    header.split(',').map((p) => p.trim().split('='))
+  );
+  const timestamp = parts.t;
+  const received = parts.v1;
+
+  if (!timestamp || !received) {
+    return new Response('Malformed Signature', { status: 401 });
+  }
+
+  // 2. Reject replays. Signatures are valid for five minutes.
+  const ageMs = Math.abs(Date.now() - Number(timestamp) * 1000);
+  if (!Number.isFinite(ageMs) || ageMs > 5 * 60 * 1000) {
+    return new Response('Signature Expired', { status: 401 });
+  }
+
+  // 3. Read the raw unparsed body string (do NOT parse JSON first)
   const rawBody = await req.text();
   const secret = process.env.REIGNOVA_WEBHOOK_SECRET!;
 
-  // 3. Compute expected HMAC-SHA256 signature
-  const expectedSignature = crypto
+  // 4. Sign "<timestamp>.<rawBody>" — NOT the body on its own
+  const expected = crypto
     .createHmac('sha256', secret)
-    .update(rawBody)
+    .update(\`\${timestamp}.\${rawBody}\`)
     .digest('hex');
 
-  // 4. Perform timing-safe signature comparison
-  const isValid = crypto.timingSafeEqual(
-    Buffer.from(signature),
-    Buffer.from(expectedSignature)
-  );
-
-  if (!isValid) {
+  // 5. Compare as bytes. timingSafeEqual throws when lengths differ,
+  //    so check the length before calling it.
+  const a = Buffer.from(received, 'hex');
+  const b = Buffer.from(expected, 'hex');
+  if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) {
     return new Response('Invalid Webhook Signature', { status: 401 });
   }
 
-  // 5. Parse event payload safely & handle idempotency
-  const event = JSON.parse(rawBody);
-  console.log(\`Received verified event: \${event.event}\`, event.data);
+  // 6. Parse the payload and fulfil idempotently — the same event can
+  //    be delivered more than once, so key off data.reference.
+  const { event, data } = JSON.parse(rawBody);
+  await fulfil(event, data);
 
-  // Return HTTP 200 OK to acknowledge receipt
+  // Return HTTP 200 OK to acknowledge receipt. Any other status is
+  // treated as a failure and the event is retried.
   return new Response(JSON.stringify({ received: true }), { status: 200 });
 }`;
 
@@ -116,7 +132,7 @@ export async function POST(req: Request) {
                 <div>
                   <h4 className="text-base font-bold text-slate-900">HMAC-SHA256 Verification</h4>
                   <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-                    Every webhook payload is signed with your merchant secret key. Always compute signature over the raw body string to prevent tampering.
+                    Every payload is signed with your merchant secret. The signed string is <code className="font-mono text-amber-800">{'<timestamp>.<rawBody>'}</code> — the timestamp from the header, a dot, then the raw body — and the header carries both as <code className="font-mono text-amber-800">t=…,v1=…</code>.
                   </p>
                 </div>
               </div>
@@ -138,9 +154,9 @@ export async function POST(req: Request) {
                   <RefreshCw className="size-5" />
                 </div>
                 <div>
-                  <h4 className="text-base font-bold text-slate-900">Idempotency & Duplicate Events</h4>
+                  <h4 className="text-base font-bold text-slate-900">Retries & Duplicate Events</h4>
                   <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-                    The payment service retries unacknowledged notifications up to 5 times. Store processed deposit IDs in your database to handle duplicate callbacks safely.
+                    Anything other than a 2xx is retried five times, backing off 1m, 5m, 15m, 30m and 1h. Make your handler idempotent — key off <code className="font-mono text-amber-800">data.reference</code>, since the same event can arrive more than once.
                   </p>
                 </div>
               </div>
