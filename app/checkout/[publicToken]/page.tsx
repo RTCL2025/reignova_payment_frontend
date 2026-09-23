@@ -54,18 +54,26 @@ export default function CheckoutPage() {
   const [isCancelling, setIsCancelling] = useState<boolean>(false);
 
   // Polling hook
-  const { status, setStatus, failureReason, startPolling, stopPolling } =
-    useCheckoutStatus({
-      publicToken,
-      initialStatus: "PENDING",
-      onStatusChange: (newStatus, reason) => {
-        if (session) {
-          setSession((prev) =>
-            prev ? { ...prev, status: newStatus, failureReason: reason } : null,
-          );
-        }
-      },
-    });
+  const {
+    status,
+    setStatus,
+    failureReason,
+    isPolling,
+    isCheckingNow,
+    error: pollError,
+    startPolling,
+    stopPolling,
+    checkNow,
+  } = useCheckoutStatus({
+    publicToken,
+    initialStatus: "PENDING",
+    expiresAt: session?.expiresAt ?? null,
+    onStatusChange: (newStatus, reason) => {
+      setSession((prev) =>
+        prev ? { ...prev, status: newStatus, failureReason: reason } : null,
+      );
+    },
+  });
 
   // Fetch session on mount
   const fetchSession = useCallback(async () => {
@@ -185,8 +193,11 @@ export default function CheckoutPage() {
     );
   }
 
-  // Determine current active view based on real session status
-  const currentStatus = session.status || status;
+  // The polled status is the live one. Reading `session.status` first meant a
+  // snapshot taken at page load outranked what the payment service had since
+  // told us, so a checkout that completed — or expired — after the page
+  // rendered never moved off the "USSD Push Dispatched" screen.
+  const currentStatus = status || session.status;
   let activeView:
     | "default"
     | "processing"
@@ -281,9 +292,15 @@ export default function CheckoutPage() {
             metadata={session.metadata}
             reason={session.reason}
             onExpire={() => {
+              stopPolling();
               setStatus("EXPIRED");
+              // Return `prev` untouched when nothing changes so React can bail
+              // out of the re-render; building a fresh object unconditionally
+              // kept the render loop alive.
               setSession((prev) =>
-                prev ? { ...prev, status: "EXPIRED" } : null,
+                prev && prev.status !== "EXPIRED"
+                  ? { ...prev, status: "EXPIRED" }
+                  : prev,
               );
             }}
           />
@@ -306,6 +323,10 @@ export default function CheckoutPage() {
                 session={session}
                 phone={submittedPhone}
                 providerId={submittedProvider}
+                isPolling={isPolling}
+                isCheckingNow={isCheckingNow}
+                stalledMessage={pollError}
+                onCheckNow={checkNow}
               />
             )}
 
