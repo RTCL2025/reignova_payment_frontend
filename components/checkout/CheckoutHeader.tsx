@@ -55,23 +55,18 @@ export function CheckoutHeader({
 
   return (
     <header className="fixed top-0 left-0 right-0 w-full z-50 bg-white/90 backdrop-blur-xl border-b border-slate-200/80 shadow-[0_1px_8px_rgba(0,0,0,0.04)]">
-      <div className="h-16 max-w-5xl mx-auto px-4 sm:px-6 flex items-center justify-between">
-        {/* Left: Official Reignova Logo & Security Badges */}
+      <div className="relative h-16 max-w-5xl mx-auto px-4 sm:px-6 flex items-center justify-between">
+        {/* Left: Security Badges */}
         <div className="flex items-center gap-3">
-          <ReignovaLogo size={34} textClassName="text-slate-900" />
-
-          {/* 256-bit Encrypted Badge */}
           <div className="hidden sm:flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200/70 text-emerald-700 text-xs font-medium">
             <Lock className="w-3 h-3 text-emerald-600" />
             <span>256-bit Encrypted</span>
           </div>
+        </div>
 
-          {/* Test Mode Badge */}
-          {/* {isTestMode && (
-            <div className="hidden md:inline-flex items-center px-2.5 py-0.5 rounded-full bg-blue-50 border border-blue-200/60 text-blue-700 text-[11px] font-semibold tracking-wider font-mono">
-              TEST MODE
-            </div>
-          )} */}
+        {/* Center: Official Reignova Logo */}
+        <div className="absolute left-1/2 -translate-x-1/2 flex items-center">
+          <ReignovaLogo size={34} textClassName="text-slate-900" />
         </div>
 
         {/* Right: Navigation, Currency Selector, and User Pill */}

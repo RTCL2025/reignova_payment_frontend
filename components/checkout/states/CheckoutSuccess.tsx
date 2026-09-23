@@ -120,36 +120,36 @@ export function CheckoutSuccess({
       </div>
 
       {/* Action Buttons */}
-      <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
-        {returnUrl ? (
-          <Button
-            type="button"
-            onClick={() => (window.location.href = returnUrl)}
-            className="px-6 py-2.5 rounded-xl bg-brand-gold hover:bg-brand-gold-hover text-brand-navy-900 font-bold text-sm shadow-md"
-          >
-            <span>Return to Merchant ({countdown}s)</span>
-            <ArrowRight className="w-4 h-4 ml-1.5" />
-          </Button>
-        ) : // : onResetState ? (
-        //   <button
-        //     type="button"
-        //     onClick={onResetState}
-        //     className="px-6 py-2.5 rounded-xl bg-brand-gold hover:bg-brand-gold-hover text-brand-navy-900 font-bold text-sm shadow-md transition-all"
-        //   >
-        //     Return to Checkout Home
-        //   </button>
-        // )
-        null}
+      <div className="flex flex-col items-center gap-3 pt-1 w-full max-w-sm">
+        <Button
+          type="button"
+          onClick={() => {
+            if (returnUrl) {
+              window.location.href = returnUrl;
+            } else if (document.referrer) {
+              window.location.href = document.referrer;
+            } else {
+              window.history.back();
+            }
+          }}
+          className="w-full h-12 rounded-xl bg-brand-gold hover:bg-brand-gold-hover text-brand-navy-900 font-bold text-sm shadow-md cursor-pointer transition-all flex items-center justify-center gap-2"
+        >
+          <span>
+            Return to {session.merchant.name}
+            {returnUrl && countdown > 0 ? ` (${countdown}s)` : ""}
+          </span>
+          <ArrowRight className="w-4 h-4" />
+        </Button>
 
         <a
           href={`${API_BASE_URL}/checkouts/public/${session.publicToken}/receipt?download=true`}
           download={`Receipt-${session.reference}.pdf`}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-semibold bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 transition-colors shadow-2xs"
+          className="w-full h-11 inline-flex items-center justify-center gap-1.5 rounded-xl text-xs font-semibold bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 transition-colors shadow-2xs"
         >
           <Printer className="w-3.5 h-3.5 text-slate-500" />
-          <span>Download Receipt</span>
+          <span>Download PDF Receipt</span>
         </a>
       </div>
     </div>

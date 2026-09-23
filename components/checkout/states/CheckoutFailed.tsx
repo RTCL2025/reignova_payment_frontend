@@ -53,26 +53,34 @@ export function CheckoutFailed({
       </div>
 
       {/* Action Buttons */}
-      <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
+      <div className="flex flex-col items-center gap-2.5 pt-1 w-full max-w-sm">
         <button
           type="button"
           onClick={onRetry}
-          className="px-5 py-2.5 rounded-xl bg-brand-gold hover:bg-brand-gold-hover text-brand-navy-900 font-bold text-sm shadow-md transition-all cursor-pointer"
+          className="w-full h-11 rounded-xl bg-brand-gold hover:bg-brand-gold-hover text-brand-navy-900 font-bold text-sm shadow-md transition-all cursor-pointer flex items-center justify-center gap-2"
         >
-          Try Another Number
+          <RefreshCw className="w-4 h-4" />
+          <span>Try Another Number</span>
         </button>
 
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => {
-            alert('Support contact: support@reignovatechnologies.com');
-          }}
-          className="px-4 py-2.5 rounded-xl bg-white text-slate-700 border-slate-200 hover:bg-slate-50 text-sm font-semibold"
-        >
-          <HelpCircle className="w-4 h-4 mr-1.5 text-slate-400" />
-          <span>Contact Support</span>
-        </Button>
+        <div className="flex items-center gap-2 w-full">
+          {session.merchant.cancelUrl || session.merchant.returnUrl ? (
+            <a
+              href={session.merchant.cancelUrl || session.merchant.returnUrl || '#'}
+              className="flex-1 h-10 inline-flex items-center justify-center rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition-colors"
+            >
+              Return to {session.merchant.name}
+            </a>
+          ) : null}
+
+          <a
+            href="mailto:support@reignovatechnologies.com"
+            className="flex-1 h-10 inline-flex items-center justify-center gap-1.5 rounded-xl bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 font-semibold text-xs transition-colors shadow-2xs"
+          >
+            <HelpCircle className="w-3.5 h-3.5 text-slate-400" />
+            <span>Contact Support</span>
+          </a>
+        </div>
       </div>
     </div>
   );

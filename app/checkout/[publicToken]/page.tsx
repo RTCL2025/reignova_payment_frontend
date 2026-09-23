@@ -50,7 +50,7 @@ export default function CheckoutPage() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submittedPhone, setSubmittedPhone] = useState<string>("");
   const [submittedProvider, setSubmittedProvider] =
-    useState<string>("VODACOM_TZA");
+    useState<string>("AIRTEL_TZA");
   const [isCancelling, setIsCancelling] = useState<boolean>(false);
 
   // Polling hook
@@ -214,22 +214,22 @@ export default function CheckoutPage() {
       {/* SINGLE-COLUMN ELEVATED CARD CONTAINER (MAX-W-3XL) */}
       <main className="w-full max-w-3xl my-auto">
         <div className="w-full bg-white rounded-2xl shadow-xl shadow-slate-900/5 border border-slate-200/80 overflow-hidden flex flex-col">
-          {/* CARD TOP BRAND HEADER: Reignova Logo & ReignovaPay Branding */}
-          <div className="px-5 sm:px-6 py-3.5 bg-slate-50/90 border-b border-slate-200/80 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <ReignovaLogo size={28} textClassName="text-slate-900" />
-              <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200/70 text-emerald-700 text-xs font-medium">
-                <Lock className="w-3.5 h-3.5 text-emerald-600" />
-                <span>256-bit Encrypted</span>
-              </div>
+          {/* CARD TOP BRAND HEADER: Reignova Logo & Security Badge */}
+          <div className="relative px-5 sm:px-6 py-3.5 bg-slate-50/90 border-b border-slate-200/80 flex items-center justify-between">
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200/70 text-emerald-700 text-xs font-medium">
+              <Lock className="w-3.5 h-3.5 text-emerald-600" />
+              <span className="hidden sm:inline">256-bit Encrypted</span>
             </div>
+
+            {/* CENTERED LOGO */}
+            <div className="absolute left-1/2 -translate-x-1/2 flex items-center">
+              <ReignovaLogo size={30} textClassName="text-slate-900" />
+            </div>
+
             <div className="flex items-center gap-2">
-              {/* <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-blue-50 border border-blue-200/60 text-blue-700 text-[11px] font-semibold tracking-wider font-mono">
-                TEST MODE
-              </span> */}
               {!["COMPLETED", "CANCELLED", "EXPIRED", "PROCESSING"].includes(
                 currentStatus,
-              ) && (
+              ) ? (
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <button
@@ -264,6 +264,8 @@ export default function CheckoutPage() {
                     </AlertDialogFooter>
                   </AlertDialogContent>
                 </AlertDialog>
+              ) : (
+                <div className="w-7 h-7" />
               )}
             </div>
           </div>
@@ -298,34 +300,6 @@ export default function CheckoutPage() {
                 session={session}
                 phone={submittedPhone}
                 providerId={submittedProvider}
-                onSimulateSuccess={async () => {
-                  try {
-                    const res = await simulateCheckoutApproval(publicToken);
-                    setStatus(res.status);
-                    setSession((prev) =>
-                      prev ? { ...prev, status: res.status } : null,
-                    );
-                  } catch (err: any) {
-                    alert(err?.message || "Simulation failed");
-                  }
-                }}
-                onSimulateFailed={async () => {
-                  try {
-                    const res = await simulateCheckoutTimeout(publicToken);
-                    setStatus(res.status);
-                    setSession((prev) =>
-                      prev
-                        ? {
-                            ...prev,
-                            status: res.status,
-                            failureReason: "Handset authorization timed out",
-                          }
-                        : null,
-                    );
-                  } catch (err: any) {
-                    alert(err?.message || "Simulation failed");
-                  }
-                }}
               />
             )}
 

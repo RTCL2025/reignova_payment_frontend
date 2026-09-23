@@ -81,28 +81,6 @@ export function CheckoutProcessing({
         </span>
       </div>
 
-      {/* Simulation Actions */}
-      <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
-        {onSimulateSuccess && (
-          <button
-            type="button"
-            onClick={onSimulateSuccess}
-            className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-mono text-xs font-semibold shadow-xs transition-colors cursor-pointer"
-          >
-            Simulate Handset Approval
-          </button>
-        )}
-        {onSimulateFailed && (
-          <button
-            type="button"
-            onClick={onSimulateFailed}
-            className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-mono text-xs font-semibold transition-colors cursor-pointer"
-          >
-            Simulate Timeout
-          </button>
-        )}
-      </div>
-
       {/* Troubleshooting Dropdown */}
       <Collapsible
         open={showTroubleshooting}

@@ -19,18 +19,10 @@ interface OperatorDef {
   logoUrl: string;
   containerBg?: string;
   objectFit?: 'object-contain' | 'object-cover';
+  isUnavailable?: boolean;
 }
 
 const OPERATOR_DEFS: OperatorDef[] = [
-  {
-    id: 'VODACOM_TZA',
-    name: 'Vodacom M-Pesa',
-    shortName: 'M-Pesa',
-    subName: 'Vodacom TZ',
-    logoUrl: '/providers/mpesa.png',
-    containerBg: 'bg-white',
-    objectFit: 'object-contain',
-  },
   {
     id: 'AIRTEL_TZA',
     name: 'Airtel Money',
@@ -50,6 +42,16 @@ const OPERATOR_DEFS: OperatorDef[] = [
     objectFit: 'object-contain',
   },
   {
+    id: 'VODACOM_TZA',
+    name: 'Vodacom M-Pesa',
+    shortName: 'M-Pesa',
+    subName: 'Vodacom TZ',
+    logoUrl: '/providers/mpesa.png',
+    containerBg: 'bg-white',
+    objectFit: 'object-contain',
+    isUnavailable: true,
+  },
+  {
     id: 'HALOTEL_TZA',
     name: 'Halotel HaloPesa',
     shortName: 'HaloPesa',
@@ -57,6 +59,7 @@ const OPERATOR_DEFS: OperatorDef[] = [
     logoUrl: '/providers/halopesa.png',
     containerBg: 'bg-white',
     objectFit: 'object-contain',
+    isUnavailable: true,
   },
 ];
 
@@ -65,7 +68,7 @@ export function PaymentMethodSelector({
   onSelectProvider,
   disabled = false,
 }: PaymentMethodSelectorProps) {
-  const activeOperator = OPERATOR_DEFS.find((o) => o.id === selectedProvider) || OPERATOR_DEFS[0];
+  const activeOperator = OPERATOR_DEFS.find((o) => o.id === selectedProvider && !o.isUnavailable) || OPERATOR_DEFS[0];
 
   return (
     <div className="flex flex-col gap-2">
@@ -89,21 +92,28 @@ export function PaymentMethodSelector({
       {/* 4-Column Operator Grid with Official Logos */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
         {OPERATOR_DEFS.map((operator) => {
-          const isSelected = selectedProvider === operator.id;
+          const isSelected = selectedProvider === operator.id && !operator.isUnavailable;
+          const isDisabled = disabled || operator.isUnavailable;
 
           return (
             <button
               key={operator.id}
               type="button"
-              disabled={disabled}
-              onClick={() => onSelectProvider(operator.id)}
+              disabled={isDisabled}
+              onClick={() => {
+                if (!operator.isUnavailable) {
+                  onSelectProvider(operator.id);
+                }
+              }}
               className={`relative text-left p-3 rounded-xl border transition-all duration-200 flex flex-col justify-between h-24 select-none ${
-                isSelected
+                operator.isUnavailable
+                  ? 'bg-slate-50/80 border-slate-200 opacity-60 cursor-not-allowed grayscale-[0.4]'
+                  : isSelected
                   ? 'bg-amber-50/60 border-brand-gold ring-2 ring-brand-gold/30 shadow-sm'
-                  : 'bg-white hover:bg-slate-50 border-slate-200 shadow-2xs'
-              } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                  : 'bg-white hover:bg-slate-50 border-slate-200 shadow-2xs cursor-pointer'
+              } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
-              {/* Top row: Official Provider Logo & Radio Checkmark */}
+              {/* Top row: Official Provider Logo & Radio Checkmark / Disabled Badge */}
               <div className="flex items-center justify-between w-full">
                 <div
                   className={`w-10 h-8 rounded-lg ${operator.containerBg || 'bg-white'} border border-slate-200/80 p-0.5 flex items-center justify-center overflow-hidden shadow-2xs`}
@@ -116,15 +126,21 @@ export function PaymentMethodSelector({
                   />
                 </div>
 
-                <div
-                  className={`w-4 h-4 rounded-full flex items-center justify-center transition-all ${
-                    isSelected
-                      ? 'bg-brand-navy-900 text-white'
-                      : 'bg-slate-100 border border-slate-200 text-transparent'
-                  }`}
-                >
-                  <Check className="w-2.5 h-2.5 stroke-[3]" />
-                </div>
+                {operator.isUnavailable ? (
+                  <span className="text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded bg-slate-200 text-slate-600">
+                    Disabled
+                  </span>
+                ) : (
+                  <div
+                    className={`w-4 h-4 rounded-full flex items-center justify-center transition-all ${
+                      isSelected
+                        ? 'bg-brand-navy-900 text-white'
+                        : 'bg-slate-100 border border-slate-200 text-transparent'
+                    }`}
+                  >
+                    <Check className="w-2.5 h-2.5 stroke-[3]" />
+                  </div>
+                )}
               </div>
 
               {/* Bottom: Carrier Name & Network Subtitle */}
@@ -133,7 +149,7 @@ export function PaymentMethodSelector({
                   {operator.shortName}
                 </span>
                 <span className="text-[11px] text-slate-500 font-medium truncate block">
-                  {operator.subName}
+                  {operator.isUnavailable ? 'Unavailable for now' : operator.subName}
                 </span>
               </div>
             </button>
