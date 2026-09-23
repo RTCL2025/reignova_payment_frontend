@@ -280,6 +280,12 @@ export default function CheckoutPage() {
             description={session.description}
             metadata={session.metadata}
             reason={session.reason}
+            onExpire={() => {
+              setStatus("EXPIRED");
+              setSession((prev) =>
+                prev ? { ...prev, status: "EXPIRED" } : null,
+              );
+            }}
           />
 
           {/* CARD BODY: SWITCHABLE STATES */}

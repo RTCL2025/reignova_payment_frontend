@@ -30,6 +30,7 @@ interface MerchantSummaryProps {
   itemCategory?: string;
   itemImage?: string;
   onCancel?: () => void;
+  onExpire?: () => void;
   isCancelling?: boolean;
 }
 
@@ -47,6 +48,7 @@ export function MerchantSummary({
   itemCategory,
   itemImage,
   onCancel,
+  onExpire,
   isCancelling = false,
 }: MerchantSummaryProps) {
   const [timeLeft, setTimeLeft] = useState(() => (expiresAt ? formatTimeRemaining(expiresAt) : null));
@@ -54,11 +56,17 @@ export function MerchantSummary({
 
   useEffect(() => {
     if (!expiresAt) return;
-    const interval = setInterval(() => {
-      setTimeLeft(formatTimeRemaining(expiresAt));
-    }, 1000);
+    const updateTimer = () => {
+      const remaining = formatTimeRemaining(expiresAt);
+      setTimeLeft(remaining);
+      if (remaining.isExpired) {
+        onExpire?.();
+      }
+    };
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
     return () => clearInterval(interval);
-  }, [expiresAt]);
+  }, [expiresAt, onExpire]);
 
   // Extract title: explicit prop > metadata > reason > description > reference
   const derivedTitle =
@@ -159,10 +167,26 @@ export function MerchantSummary({
             Official Checkout
           </span>
           {timeLeft && (
-            <div className="flex items-center gap-1.5 px-3 py-0.5 bg-white rounded-full border border-slate-200 text-slate-600 text-xs font-mono shadow-xs">
-              <Timer className="w-3.5 h-3.5 text-brand-gold animate-pulse" />
+            <div
+              className={`flex items-center gap-1.5 px-3 py-0.5 rounded-full border text-xs font-mono shadow-xs transition-colors ${
+                timeLeft.isExpired
+                  ? 'bg-red-50 border-red-200 text-red-700'
+                  : 'bg-white border-slate-200 text-slate-600'
+              }`}
+            >
+              <Timer
+                className={`w-3.5 h-3.5 ${
+                  timeLeft.isExpired ? 'text-red-500' : 'text-brand-gold animate-pulse'
+                }`}
+              />
               <span>
-                Expires in <strong className="text-slate-900 font-bold">{timeLeft.formatted}</strong>
+                {timeLeft.isExpired ? (
+                  <strong className="text-red-700 font-bold">Session Expired</strong>
+                ) : (
+                  <>
+                    Expires in <strong className="text-slate-900 font-bold">{timeLeft.formatted}</strong>
+                  </>
+                )}
               </span>
             </div>
           )}
