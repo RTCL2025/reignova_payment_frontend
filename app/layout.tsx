@@ -20,16 +20,14 @@ const ibmPlexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Reignova Secure Checkout',
+  title: 'Reignova Payment Infrastructure & Documentation',
   description: 'Fast, secure mobile money payments powered by Reignova Technologies',
   icons: {
     icon: [
       { url: '/icon.svg', type: 'image/svg+xml' },
-      { url: '/favicon.ico' },
-      { url: '/icon.png', type: 'image/png' },
     ],
     apple: [
-      { url: '/apple-touch-icon.png' },
+      { url: '/icon.svg', type: 'image/svg+xml' },
     ],
   },
 };

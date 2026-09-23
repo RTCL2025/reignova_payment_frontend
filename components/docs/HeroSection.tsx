@@ -104,18 +104,18 @@ export function HeroSection() {
               <span className="font-semibold text-slate-700 font-sans text-xs mr-1">
                 Supported Networks:
               </span>
-              <Badge variant="outline" className="bg-emerald-50/80 text-emerald-800 border-emerald-300 font-medium">
+              {/* <Badge variant="outline" className="bg-emerald-50/80 text-emerald-800 border-emerald-300 font-medium">
                 M-Pesa
-              </Badge>
+              </Badge> */}
               <Badge variant="outline" className="bg-rose-50/80 text-rose-800 border-rose-300 font-medium">
                 Airtel Money
               </Badge>
               <Badge variant="outline" className="bg-sky-50/80 text-sky-800 border-sky-300 font-medium">
-                Tigo Pesa
+                Mixx by Yas / Tigo Pesa
               </Badge>
-              <Badge variant="outline" className="bg-slate-100 text-slate-700 border-slate-300 font-medium">
+              {/* <Badge variant="outline" className="bg-slate-100 text-slate-700 border-slate-300 font-medium">
                 Cards & Bank
-              </Badge>
+              </Badge> */}
             </motion.div>
 
             {/* Feature Badges Grid */}
