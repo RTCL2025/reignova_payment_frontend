@@ -23,7 +23,7 @@ export const LIFECYCLE_STEPS: LifecycleStep[] = [
     paymentAttemptStatus: 'NOT_INITIATED',
     webhookStatus: 'NONE',
     reignovaEventsOrderStatus: 'PENDING_PAYMENT',
-    description: 'Merchant backend invokes POST /checkouts/public to generate a hosted session token.',
+    description: 'Merchant backend invokes POST /api/v1/checkouts with Bearer API key and Idempotency-Key to generate a session.',
   },
   {
     step: 2,

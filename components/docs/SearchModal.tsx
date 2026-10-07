@@ -52,7 +52,7 @@ export const DOC_SEARCH_ITEMS: SearchItem[] = [
   {
     id: '6',
     title: 'Mobile Money Providers & pawaPay',
-    description: 'Supported countries (TZ, KE, UG, GH, ZM), currencies, and provider-specific details.',
+    description: 'Tanzania mobile networks (Vodacom, Airtel, Yas/Tigo, Halotel), TZS formatting, and pawaPay V2.',
     category: 'Providers',
     href: '/docs/providers',
   },

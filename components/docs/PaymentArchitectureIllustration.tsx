@@ -48,7 +48,7 @@ export const FLOW_STEPS: StepInfo[] = [
     shortTitle: "Create Session",
     sourceNodeId: "merchant",
     targetNodeId: "gateway",
-    endpoint: "/checkouts/public",
+    endpoint: "/api/v1/checkouts",
     method: "POST",
     latency: "45ms",
     accumulatedTime: "45ms",
@@ -56,8 +56,8 @@ export const FLOW_STEPS: StepInfo[] = [
     statusType: "amber",
     provider: "API Gateway",
     description:
-      "Merchant backend issues authenticated REST request to generate a hosted checkout session token.",
-    payload: `{\n  "amount": 25000,\n  "currency": "TZS",\n  "reference": "EVT-2026-9921",\n  "merchantSlug": "reignova-events",\n  "returnUrl": "https://events.reignovatechnologies.com/checkout/success"\n}`,
+      "Merchant backend issues authenticated REST request with Bearer API key to generate a hosted checkout session.",
+    payload: `{\n  "amount": 25000,\n  "currency": "TZS",\n  "country": "TZ",\n  "reference": "EVT-2026-9921",\n  "returnUrl": "https://events.reignovatechnologies.com/checkout/success"\n}`,
   },
   {
     id: 2,
@@ -66,7 +66,7 @@ export const FLOW_STEPS: StepInfo[] = [
     shortTitle: "Token Issued",
     sourceNodeId: "gateway",
     targetNodeId: "merchant",
-    endpoint: "chk_live_9f82ab411e72",
+    endpoint: "chk_pub_98a7b6c51120",
     method: "POST",
     latency: "18ms",
     accumulatedTime: "63ms",
@@ -75,25 +75,25 @@ export const FLOW_STEPS: StepInfo[] = [
     provider: "Reignova Engine",
     description:
       "Gateway generates a signed checkout session token and returns the secure hosted checkout URL.",
-    payload: `{\n  "success": true,\n  "data": {\n    "publicToken": "chk_live_9f82ab411e72",\n    "checkoutUrl": "https://pay.reignovatechnologies.com/checkout/chk_live_9f82ab411e72",\n    "expiresAt": "2026-09-23T21:45:00Z"\n  }\n}`,
+    payload: `{\n  "success": true,\n  "data": {\n    "publicToken": "chk_pub_98a7b6c51120",\n    "checkoutCode": "CK-9921-X8",\n    "redirectUrl": "/checkout/chk_pub_98a7b6c51120",\n    "expiresAt": "2026-10-07T16:45:00Z"\n  }\n}`,
   },
   {
     id: 3,
     stepNumber: "03",
-    title: "3. PawaPay USSD Push Dispatch",
+    title: "3. pawaPay USSD Push Dispatch",
     shortTitle: "USSD Push",
     sourceNodeId: "gateway",
     targetNodeId: "pawapay",
-    endpoint: "/pawapay/deposits",
+    endpoint: "/v2/deposits",
     method: "POST",
     latency: "120ms",
     accumulatedTime: "183ms",
     status: "USSD_PUSHED",
     statusType: "purple",
-    provider: "PawaPay Gateway",
+    provider: "pawaPay V2",
     description:
-      "Gateway forwards deposit request to PawaPay aggregator to dispatch mobile-money USSD prompt.",
-    payload: `{\n  "depositId": "pawapay_dep_88921a",\n  "phoneNumber": "255754XXXXXX",\n  "provider": "VODACOM_TZ",\n  "amount": "25000.00"\n}`,
+      "Gateway forwards deposit request to pawaPay aggregator to dispatch mobile money USSD prompt.",
+    payload: `{\n  "depositId": "7b8cb404-51e4-44b2-a4f6-86cb8114f4ee",\n  "phoneNumber": "255754123456",\n  "provider": "VODACOM_TZA",\n  "amount": "25000",\n  "currency": "TZS"\n}`,
   },
   {
     id: 4,
@@ -111,7 +111,7 @@ export const FLOW_STEPS: StepInfo[] = [
     provider: "Vodacom M-Pesa",
     description:
       "Customer inputs secret PIN on mobile screen. Telco network validates funds and settles transaction.",
-    payload: `{\n  "status": "COMPLETED",\n  "payerMobile": "+255754XXXXXX",\n  "financialTransactionId": "99A12089X"\n}`,
+    payload: `{\n  "status": "COMPLETED",\n  "payerMobile": "+255754123456",\n  "providerTransactionId": "ptx_998124912"\n}`,
   },
   {
     id: 5,
@@ -120,7 +120,7 @@ export const FLOW_STEPS: StepInfo[] = [
     shortTitle: "Webhook",
     sourceNodeId: "gateway",
     targetNodeId: "merchant",
-    endpoint: "/api/webhooks/reignova",
+    endpoint: "/api/webhooks/payments",
     method: "WEBHOOK",
     latency: "65ms",
     accumulatedTime: "1.45s",
@@ -128,8 +128,8 @@ export const FLOW_STEPS: StepInfo[] = [
     statusType: "emerald",
     provider: "Reignova Webhooks",
     description:
-      "Gateway signs event body with HMAC-SHA256 secret and dispatches webhook to unlock order.",
-    payload: `{\n  "event": "checkout.completed",\n  "publicToken": "chk_live_9f82ab411e72",\n  "amount": 25000,\n  "status": "COMPLETED",\n  "signature": "sha256=e3b0c44298fc1c149afbf4c8996fb924..."\n}`,
+      "Gateway signs event body with HMAC-SHA256 secret (X-Payment-Signature) and dispatches webhook.",
+    payload: `{\n  "event": "checkout.completed",\n  "data": {\n    "reference": "EVT-2026-9921",\n    "amount": 25000,\n    "status": "COMPLETED"\n  }\n}`,
   },
 ];
 

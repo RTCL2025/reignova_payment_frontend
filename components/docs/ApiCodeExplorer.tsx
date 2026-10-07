@@ -31,167 +31,191 @@ export const API_ENDPOINTS: ApiEndpointExample[] = [
   {
     id: "create-checkout",
     method: "POST",
-    endpoint: "/api/v1/checkouts/public",
+    endpoint: "/api/v1/checkouts",
     title: "Create Checkout Session",
     description:
-      "Generates a hosted payment session public token for customer checkout.",
-    curl: `curl -X POST https://pay-api.reignovatechnologies.com/api/v1/checkouts/public \\
-  -H "Authorization: Bearer sk_live_app_8f3a" \\
+      "Server-to-server request generating a hosted session public token for customer checkout.",
+    curl: `curl -X POST https://pay-api.reignovatechnologies.com/api/v1/checkouts \\
+  -H "Authorization: Bearer pk_live_8f3a9921e4b201" \\
+  -H "Idempotency-Key: evt-order-9921" \\
   -H "Content-Type: application/json" \\
   -d '{
-    "amount": 15000,
-    "currency": "TZS",
-    "country": "TZA",
     "reference": "ORD-2026-0921",
+    "amount": 25000,
+    "currency": "TZS",
+    "country": "TZ",
     "description": "ReignovaEvents Standard Ticket",
     "returnUrl": "https://events.reignovatechnologies.com/checkout/success"
   }'`,
-    js: `const response = await fetch('https://pay-api.reignovatechnologies.com/api/v1/checkouts/public', {
+    js: `const response = await fetch('https://pay-api.reignovatechnologies.com/api/v1/checkouts', {
   method: 'POST',
   headers: {
-    'Authorization': 'Bearer sk_live_app_8f3a',
+    'Authorization': 'Bearer pk_live_8f3a9921e4b201',
+    'Idempotency-Key': 'evt-order-9921',
     'Content-Type': 'application/json'
   },
   body: JSON.stringify({
-    amount: 15000,
-    currency: 'TZS',
-    country: 'TZA',
     reference: 'ORD-2026-0921',
+    amount: 25000,
+    currency: 'TZS',
+    country: 'TZ',
     description: 'ReignovaEvents Standard Ticket',
     returnUrl: 'https://events.reignovatechnologies.com/checkout/success'
   })
 });
 const data = await response.json();`,
-    ts: `import { CheckoutSession } from '@reignova/pay-types';
+    ts: `import type { CheckoutSession } from '@/types/checkout';
 
-const res = await fetch('https://pay-api.reignovatechnologies.com/api/v1/checkouts/public', {
+const res = await fetch('https://pay-api.reignovatechnologies.com/api/v1/checkouts', {
   method: 'POST',
   headers: {
     'Authorization': \`Bearer \${process.env.PAYMENT_SERVICE_API_KEY}\`,
+    'Idempotency-Key': 'evt-order-9921',
     'Content-Type': 'application/json'
   },
   body: JSON.stringify({
-    amount: 15000,
+    reference: 'ORD-2026-0921',
+    amount: 25000,
     currency: 'TZS',
-    country: 'TZA',
-    reference: 'ORD-2026-0921'
+    country: 'TZ',
+    returnUrl: 'https://events.reignovatechnologies.com/checkout/success'
   })
 });
-const session: { success: boolean; data: CheckoutSession } = await res.json();`,
+const { data }: { data: CheckoutSession } = await res.json();`,
     python: `import requests
 
-url = "https://pay-api.reignovatechnologies.com/api/v1/checkouts/public"
+url = "https://pay-api.reignovatechnologies.com/api/v1/checkouts"
 headers = {
-    "Authorization": "Bearer sk_live_app_8f3a",
+    "Authorization": "Bearer pk_live_8f3a9921e4b201",
+    "Idempotency-Key": "evt-order-9921",
     "Content-Type": "application/json"
 }
 payload = {
-    "amount": 15000,
-    "currency": "TZS",
-    "country": "TZA",
     "reference": "ORD-2026-0921",
-    "description": "ReignovaEvents Standard Ticket"
+    "amount": 25000,
+    "currency": "TZS",
+    "country": "TZ",
+    "description": "ReignovaEvents Standard Ticket",
+    "returnUrl": "https://events.reignovatechnologies.com/checkout/success"
 }
 
 response = requests.post(url, json=payload, headers=headers)
 print(response.json())`,
     php: `<?php
-$ch = curl_init('https://pay-api.reignovatechnologies.com/api/v1/checkouts/public');
+$ch = curl_init('https://pay-api.reignovatechnologies.com/api/v1/checkouts');
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_POST, true);
 curl_setopt($ch, CURLOPT_HTTPHEADER, [
-    'Authorization: Bearer sk_live_app_8f3a',
+    'Authorization: Bearer pk_live_8f3a9921e4b201',
+    'Idempotency-Key: evt-order-9921',
     'Content-Type: application/json'
 ]);
 curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
-    'amount' => 15000,
+    'reference' => 'ORD-2026-0921',
+    'amount' => 25000,
     'currency' => 'TZS',
-    'country' => 'TZA',
-    'reference' => 'ORD-2026-0921'
+    'country' => 'TZ',
+    'returnUrl' => 'https://events.reignovatechnologies.com/checkout/success'
 ]));
 $response = curl_exec($ch);
 curl_close($ch);`,
     successResponse: `{
   "success": true,
   "data": {
+    "id": "e2f18374-1234-4a56-b789-0123456789ab",
+    "checkoutCode": "CK-9921-X8",
     "publicToken": "chk_pub_98a7b6c51120",
     "reference": "ORD-2026-0921",
-    "amount": 15000,
+    "amount": 25000,
     "currency": "TZS",
-    "country": "TZA",
+    "country": "TZ",
     "status": "PENDING",
-    "expiresAt": "2026-09-21T13:22:03.000Z",
-    "supportedProviders": [
-      { "id": "VODACOM_TZ", "name": "M-Pesa" },
-      { "id": "AIRTEL_TZ", "name": "Airtel Money" }
-    ]
+    "redirectUrl": "/checkout/chk_pub_98a7b6c51120",
+    "expiresAt": "2026-10-07T16:30:00.000Z"
   }
 }`,
     errorResponse: `{
   "success": false,
   "error": {
-    "code": "INVALID_AMOUNT",
-    "message": "Amount must be a positive integer in smallest currency unit",
-    "details": { "field": "amount", "value": -100 }
-  }
+    "code": "VALIDATION_ERROR",
+    "message": "Validation failed",
+    "details": [
+      {
+        "field": "returnUrl",
+        "message": "returnUrl is required"
+      }
+    ]
+  },
+  "requestId": "550e8400-e29b-41d4-a716-446655440000"
 }`,
   },
   {
     id: "initiate-pay",
     method: "POST",
     endpoint: "/api/v1/checkouts/public/:publicToken/pay",
-    title: "Initiate Mobile Payment",
+    title: "Customer Mobile Payment",
     description:
-      "Triggers a mobile money push payment prompt for a specific checkout token.",
+      "Public endpoint called by hosted checkout to trigger USSD push PIN prompt via pawaPay.",
     curl: `curl -X POST https://pay-api.reignovatechnologies.com/api/v1/checkouts/public/chk_pub_98a7b6c51120/pay \\
   -H "Content-Type: application/json" \\
   -d '{
-    "provider": "VODACOM_TZ",
-    "customerPhone": "+255712345678"
+    "provider": "VODACOM_TZA",
+    "customerPhone": "+255754123456",
+    "customerName": "Baraka Mussa"
   }'`,
     js: `const res = await fetch('https://pay-api.reignovatechnologies.com/api/v1/checkouts/public/chk_pub_98a7b6c51120/pay', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
-    provider: 'VODACOM_TZ',
-    customerPhone: '+255712345678'
+    provider: 'VODACOM_TZA',
+    customerPhone: '+255754123456',
+    customerName: 'Baraka Mussa'
   })
 });
 const result = await res.json();`,
     ts: `const result = await initiatePayment('chk_pub_98a7b6c51120', {
-  provider: 'VODACOM_TZ',
-  customerPhone: '+255712345678'
+  provider: 'VODACOM_TZA',
+  customerPhone: '+255754123456',
+  customerName: 'Baraka Mussa'
 });`,
     python: `response = requests.post(
     "https://pay-api.reignovatechnologies.com/api/v1/checkouts/public/chk_pub_98a7b6c51120/pay",
-    json={"provider": "VODACOM_TZ", "customerPhone": "+255712345678"}
+    json={
+        "provider": "VODACOM_TZA",
+        "customerPhone": "+255754123456",
+        "customerName": "Baraka Mussa"
+    }
 )`,
     php: `// PHP Mobile Push Request Example
-$payload = json_encode(['provider' => 'VODACOM_TZ', 'customerPhone' => '+255712345678']);`,
+$payload = json_encode([
+    'provider' => 'VODACOM_TZA',
+    'customerPhone' => '+255754123456'
+]);`,
     successResponse: `{
   "success": true,
   "data": {
     "status": "PROCESSING",
     "message": "Payment prompt sent to customer phone",
-    "depositId": "pawapay_dep_99210"
+    "depositId": "7b8cb404-51e4-44b2-a4f6-86cb8114f4ee"
   }
 }`,
     errorResponse: `{
   "success": false,
   "error": {
-    "code": "PROVIDER_TIMEOUT",
+    "code": "PROVIDER_ERROR",
     "message": "Mobile operator network timeout. Please retry transaction.",
-    "details": { "provider": "VODACOM_TZ" }
-  }
+    "details": { "provider": "VODACOM_TZA" }
+  },
+  "requestId": "550e8400-e29b-41d4-a716-446655440001"
 }`,
   },
   {
     id: "get-status",
     method: "GET",
     endpoint: "/api/v1/checkouts/public/:publicToken/status",
-    title: "Check Session Status",
+    title: "Poll Session Status",
     description:
-      "Fetches the current status of a checkout session and underlying deposit attempt.",
+      "Lightweight endpoint polled by browser every 2.5s to track terminal status.",
     curl: `curl -X GET https://pay-api.reignovatechnologies.com/api/v1/checkouts/public/chk_pub_98a7b6c51120/status`,
     js: `const res = await fetch('https://pay-api.reignovatechnologies.com/api/v1/checkouts/public/chk_pub_98a7b6c51120/status');
 const status = await res.json();`,
@@ -202,16 +226,204 @@ const status = await res.json();`,
   "success": true,
   "data": {
     "status": "COMPLETED",
+    "depositId": "7b8cb404-51e4-44b2-a4f6-86cb8114f4ee",
+    "depositStatus": "COMPLETED",
     "failureReason": null,
-    "failureCode": null
+    "completedAt": "2026-10-07T16:16:35.000Z"
   }
 }`,
     errorResponse: `{
   "success": false,
   "error": {
-    "code": "SESSION_NOT_FOUND",
-    "message": "No checkout session found with token chk_pub_98a7b6c51120"
+    "code": "NOT_FOUND",
+    "message": "Checkout session 'chk_pub_98a7b6c51120' not found"
+  },
+  "requestId": "550e8400-e29b-41d4-a716-446655440002"
+}`,
+  },
+  {
+    id: "direct-payment",
+    method: "POST",
+    endpoint: "/api/v1/payments",
+    title: "Direct STK Push Payment",
+    description:
+      "Server-to-server endpoint to trigger mobile money STK push deposit directly without hosted page.",
+    curl: `curl -X POST https://pay-api.reignovatechnologies.com/api/v1/payments \\
+  -H "Authorization: Bearer pk_live_8f3a9921e4b201" \\
+  -H "Idempotency-Key: pay-evt-99120" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "reference": "EVT-TICKET-99120",
+    "amount": 50000,
+    "currency": "TZS",
+    "phoneNumber": "+255754123456",
+    "country": "TZ",
+    "provider": "VODACOM_TZA",
+    "description": "VIP Pass 2026"
+  }'`,
+    js: `const response = await fetch('https://pay-api.reignovatechnologies.com/api/v1/payments', {
+  method: 'POST',
+  headers: {
+    'Authorization': 'Bearer pk_live_8f3a9921e4b201',
+    'Idempotency-Key': 'pay-evt-99120',
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    reference: 'EVT-TICKET-99120',
+    amount: 50000,
+    currency: 'TZS',
+    phoneNumber: '+255754123456',
+    country: 'TZ',
+    provider: 'VODACOM_TZA'
+  })
+});
+const data = await response.json();`,
+    ts: `const res = await fetch('https://pay-api.reignovatechnologies.com/api/v1/payments', {
+  method: 'POST',
+  headers: {
+    'Authorization': \`Bearer \${process.env.PAYMENT_SERVICE_API_KEY}\`,
+    'Idempotency-Key': 'pay-evt-99120',
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    reference: 'EVT-TICKET-99120',
+    amount: 50000,
+    currency: 'TZS',
+    phoneNumber: '+255754123456',
+    country: 'TZ'
+  })
+});
+const payment = await res.json();`,
+    python: `payload = {
+    "reference": "EVT-TICKET-99120",
+    "amount": 50000,
+    "currency": "TZS",
+    "phoneNumber": "+255754123456",
+    "country": "TZ",
+    "provider": "VODACOM_TZA"
+}
+res = requests.post(
+    "https://pay-api.reignovatechnologies.com/api/v1/payments",
+    json=payload,
+    headers={
+        "Authorization": "Bearer pk_live_8f3a9921e4b201",
+        "Idempotency-Key": "pay-evt-99120"
+    }
+)`,
+    php: `// PHP Direct Payment Request
+$ch = curl_init('https://pay-api.reignovatechnologies.com/api/v1/payments');
+curl_setopt($ch, CURLOPT_HTTPHEADER, [
+    'Authorization: Bearer pk_live_8f3a9921e4b201',
+    'Idempotency-Key: pay-evt-99120',
+    'Content-Type: application/json'
+]);`,
+    successResponse: `{
+  "success": true,
+  "data": {
+    "id": "7b8cb404-51e4-44b2-a4f6-86cb8114f4ee",
+    "reference": "EVT-TICKET-99120",
+    "amount": 50000,
+    "currency": "TZS",
+    "phoneNumber": "+255754123456",
+    "country": "TZ",
+    "provider": "VODACOM_TZA",
+    "status": "PROCESSING",
+    "providerPaymentId": "7b8cb404-51e4-44b2-a4f6-86cb8114f4ee"
   }
+}`,
+    errorResponse: `{
+  "success": false,
+  "error": {
+    "code": "IDEMPOTENCY_CONFLICT",
+    "message": "An identical request is currently processing or already completed with different parameters"
+  },
+  "requestId": "550e8400-e29b-41d4-a716-446655440003"
+}`,
+  },
+  {
+    id: "disburse-payout",
+    method: "POST",
+    endpoint: "/api/v1/payouts",
+    title: "Disburse Mobile Payout",
+    description:
+      "Disburses mobile money directly to recipient mobile wallet in Tanzania.",
+    curl: `curl -X POST https://pay-api.reignovatechnologies.com/api/v1/payouts \\
+  -H "Authorization: Bearer pk_live_8f3a9921e4b201" \\
+  -H "Idempotency-Key: po-disburse-vendor-1120" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "reference": "PO-VENDOR-1120",
+    "amount": 250000,
+    "currency": "TZS",
+    "phoneNumber": "+255754123456",
+    "country": "TZ",
+    "customerMessage": "Ticket Earnings"
+  }'`,
+    js: `const res = await fetch('https://pay-api.reignovatechnologies.com/api/v1/payouts', {
+  method: 'POST',
+  headers: {
+    'Authorization': 'Bearer pk_live_8f3a9921e4b201',
+    'Idempotency-Key': 'po-disburse-vendor-1120',
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    reference: 'PO-VENDOR-1120',
+    amount: 250000,
+    currency: 'TZS',
+    phoneNumber: '+255754123456',
+    country: 'TZ',
+    customerMessage: 'Ticket Earnings'
+  })
+});
+const payout = await res.json();`,
+    ts: `const res = await fetch('https://pay-api.reignovatechnologies.com/api/v1/payouts', {
+  method: 'POST',
+  headers: {
+    'Authorization': \`Bearer \${process.env.PAYMENT_SERVICE_API_KEY}\`,
+    'Idempotency-Key': 'po-disburse-vendor-1120',
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    reference: 'PO-VENDOR-1120',
+    amount: 250000,
+    currency: 'TZS',
+    phoneNumber: '+255754123456',
+    country: 'TZ'
+  })
+});`,
+    python: `res = requests.post(
+    "https://pay-api.reignovatechnologies.com/api/v1/payouts",
+    json={
+        "reference": "PO-VENDOR-1120",
+        "amount": 250000,
+        "currency": "TZS",
+        "phoneNumber": "+255754123456",
+        "country": "TZ"
+    },
+    headers={
+        "Authorization": "Bearer pk_live_8f3a9921e4b201",
+        "Idempotency-Key": "po-disburse-vendor-1120"
+    }
+)`,
+    php: `// PHP Payout Request
+$ch = curl_init('https://pay-api.reignovatechnologies.com/api/v1/payouts');`,
+    successResponse: `{
+  "success": true,
+  "data": {
+    "id": "8a7c92d3-1122-3344-5566-778899aabbcc",
+    "reference": "PO-VENDOR-1120",
+    "amount": 250000,
+    "currency": "TZS",
+    "status": "PROCESSING"
+  }
+}`,
+    errorResponse: `{
+  "success": false,
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Phone number must be a valid mobile number in E.164 format"
+  },
+  "requestId": "550e8400-e29b-41d4-a716-446655440004"
 }`,
   },
 ];
@@ -275,7 +487,7 @@ export function ApiCodeExplorer() {
           </h2>
           <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
             Inspect request payloads, HTTP headers, multi-language SDK snippets,
-            and structured error responses.
+            and structured error responses for live payment workflows.
           </p>
         </div>
 
@@ -285,7 +497,7 @@ export function ApiCodeExplorer() {
             <button
               key={ep.id}
               onClick={() => setSelectedEndpointIdx(idx)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-mono font-semibold transition-all ${
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-mono font-semibold transition-all cursor-pointer ${
                 selectedEndpointIdx === idx
                   ? "bg-white text-amber-800 border border-amber-300 shadow-sm"
                   : "bg-slate-100 text-slate-600 border border-slate-200 hover:text-slate-900"
@@ -301,131 +513,110 @@ export function ApiCodeExplorer() {
           ))}
         </div>
 
-        {/* Code Explorer Container */}
-        <div className="bg-[#0A121A] border border-slate-800 rounded-2xl overflow-hidden shadow-xl grid grid-cols-1 lg:grid-cols-12">
-          {/* Left: Request Snippet with Language Selector */}
-          <div className="lg:col-span-7 border-b lg:border-b-0 lg:border-r border-slate-800 flex flex-col justify-between">
-            {/* Header bar */}
-            <div className="px-4 py-3 bg-[#131E2A] border-b border-slate-800 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Badge
-                  className={`text-[11px] font-mono ${getMethodBadgeClass(currentEndpoint.method)}`}
-                >
-                  {currentEndpoint.method}
-                </Badge>
-                <span className="text-xs font-mono text-slate-200">
-                  {currentEndpoint.endpoint}
-                </span>
-              </div>
-
-              {/* Languages */}
-              <div className="flex bg-slate-900 p-0.5 rounded-lg border border-slate-800 text-[11px] font-mono">
-                {(["curl", "js", "ts", "python", "php"] as const).map(
-                  (lang) => (
-                    <button
-                      key={lang}
-                      onClick={() => setActiveLang(lang)}
-                      className={`px-2.5 py-1 rounded capitalize transition-colors ${
-                        activeLang === lang
-                          ? "bg-[#F3A221] text-slate-950 font-bold"
-                          : "text-slate-400 hover:text-slate-200"
-                      }`}
-                    >
-                      {lang === "curl" ? "cURL" : lang}
-                    </button>
-                  ),
-                )}
-              </div>
-            </div>
-
-            {/* Code Body */}
-            <div className="p-4 font-mono text-xs text-amber-300 overflow-x-auto bg-[#0A121A] min-h-[220px]">
-              <div className="text-slate-500 mb-2">
-                // {currentEndpoint.title} — {currentEndpoint.description}
-              </div>
-              <pre>
-                <code>{getCodeForLang()}</code>
-              </pre>
-            </div>
-
-            {/* Footer */}
-            <div className="px-4 py-2.5 bg-[#131E2A] border-t border-slate-800 flex items-center justify-between">
-              <span className="text-xs font-mono text-slate-400 flex items-center gap-1.5">
-                <ShieldCheck className="size-3.5 text-emerald-400" />
-                <span>Headers: Authorization: Bearer &lt;key&gt;</span>
-              </span>
-              <button
-                onClick={handleCopy}
-                className="px-3 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-mono flex items-center gap-1.5 transition-colors"
+        {/* Explorer Card */}
+        <div className="bg-[#0F1A25] border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
+          {/* Top Header */}
+          <div className="px-6 py-4 bg-[#14202E] border-b border-slate-800 flex flex-wrap items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <Badge
+                className={`text-xs font-mono font-bold ${getMethodBadgeClass(
+                  currentEndpoint.method,
+                )}`}
               >
-                {copied ? (
-                  <Check className="size-3.5 text-emerald-400" />
-                ) : (
-                  <Copy className="size-3.5" />
-                )}
-                <span>{copied ? "Copied" : "Copy Code"}</span>
-              </button>
+                {currentEndpoint.method}
+              </Badge>
+              <span className="font-mono text-sm font-semibold text-slate-200">
+                {currentEndpoint.endpoint}
+              </span>
+            </div>
+
+            {/* Language Switcher */}
+            <div className="flex items-center gap-1 bg-[#0A121A] p-1 rounded-lg border border-slate-800">
+              {(["curl", "js", "ts", "python", "php"] as const).map((lang) => (
+                <button
+                  key={lang}
+                  onClick={() => setActiveLang(lang)}
+                  className={`px-3 py-1 rounded text-xs font-mono transition-all cursor-pointer ${
+                    activeLang === lang
+                      ? "bg-amber-500 text-slate-950 font-bold"
+                      : "text-slate-400 hover:text-slate-200"
+                  }`}
+                >
+                  {lang.toUpperCase()}
+                </button>
+              ))}
             </div>
           </div>
 
-          {/* Right: Response Preview (Success vs Error toggle) */}
-          <div className="lg:col-span-5 flex flex-col justify-between bg-[#0F1A25]/60">
-            {/* Header bar */}
-            <div className="px-4 py-3 bg-[#131E2A] border-b border-slate-800 flex items-center justify-between">
-              <span className="text-xs font-mono text-slate-400 font-bold">
-                RESPONSE BODY
-              </span>
-              <div className="flex bg-slate-900 p-0.5 rounded-lg border border-slate-800 text-[11px] font-mono">
-                <button
-                  onClick={() => setViewError(false)}
-                  className={`px-2.5 py-1 rounded transition-colors ${
-                    !viewError
-                      ? "bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/40"
-                      : "text-slate-400"
-                  }`}
-                >
-                  200 OK
-                </button>
-                <button
-                  onClick={() => setViewError(true)}
-                  className={`px-2.5 py-1 rounded transition-colors ${
-                    viewError
-                      ? "bg-rose-500/20 text-rose-300 font-bold border border-rose-500/40"
-                      : "text-slate-400"
-                  }`}
-                >
-                  Error Response
-                </button>
-              </div>
-            </div>
+          {/* Description bar */}
+          <div className="px-6 py-3 bg-[#0D1620] border-b border-slate-800 text-xs text-slate-400 flex items-center justify-between">
+            <span>{currentEndpoint.description}</span>
+            <button
+              onClick={handleCopy}
+              className="flex items-center gap-1 text-amber-400 hover:text-amber-300 font-mono text-xs transition-colors cursor-pointer"
+            >
+              {copied ? (
+                <>
+                  <Check className="size-3.5" />
+                  <span>Copied</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="size-3.5" />
+                  <span>Copy Code</span>
+                </>
+              )}
+            </button>
+          </div>
 
-            {/* Code Body */}
-            <div className="p-4 font-mono text-xs overflow-x-auto min-h-[220px]">
-              <pre className={viewError ? "text-rose-300" : "text-emerald-300"}>
-                <code>
-                  {viewError
-                    ? currentEndpoint.errorResponse
-                    : currentEndpoint.successResponse}
-                </code>
-              </pre>
-            </div>
+          {/* Code Viewer */}
+          <div className="p-6 font-mono text-xs text-amber-300 overflow-x-auto max-h-96">
+            <pre>
+              <code>{getCodeForLang()}</code>
+            </pre>
+          </div>
 
-            {/* Footer info */}
-            <div className="px-4 py-2.5 bg-[#131E2A] border-t border-slate-800 text-[11px] font-mono text-slate-400 flex items-center justify-between">
-              <span className="flex items-center gap-1">
-                {viewError ? (
-                  <AlertTriangle className="size-3.5 text-rose-400" />
-                ) : (
-                  <Check className="size-3.5 text-emerald-400" />
-                )}
-                <span>
-                  {viewError
-                    ? "Structured RFC-7807 Error Payload"
-                    : "Standard JSON Response"}
-                </span>
-              </span>
-              <span className="text-slate-500">application/json</span>
+          {/* Response Viewer Toggle */}
+          <div className="px-6 py-3 bg-[#14202E] border-t border-slate-800 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-mono text-slate-400">Response:</span>
+              <button
+                onClick={() => setViewError(false)}
+                className={`px-2.5 py-1 rounded text-xs font-mono transition-all cursor-pointer ${
+                  !viewError
+                    ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                    : "text-slate-400 hover:text-slate-200"
+                }`}
+              >
+                200 OK
+              </button>
+              <button
+                onClick={() => setViewError(true)}
+                className={`px-2.5 py-1 rounded text-xs font-mono transition-all cursor-pointer ${
+                  viewError
+                    ? "bg-rose-500/20 text-rose-300 border border-rose-500/30"
+                    : "text-slate-400 hover:text-slate-200"
+                }`}
+              >
+                Error (4xx)
+              </button>
             </div>
+            <span className="text-[11px] font-mono text-slate-500">
+              Format: application/json
+            </span>
+          </div>
+
+          {/* Response Body Display */}
+          <div className="p-6 bg-[#0B131D] font-mono text-xs border-t border-slate-800 overflow-x-auto max-h-72">
+            <pre
+              className={viewError ? "text-rose-300" : "text-emerald-300"}
+            >
+              <code>
+                {viewError
+                  ? currentEndpoint.errorResponse
+                  : currentEndpoint.successResponse}
+              </code>
+            </pre>
           </div>
         </div>
       </div>

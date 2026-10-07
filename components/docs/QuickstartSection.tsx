@@ -24,7 +24,7 @@ export function QuickstartSection() {
   };
 
   const envCode = `PAYMENT_SERVICE_BASE_URL=https://pay-api.reignovatechnologies.com
-PAYMENT_SERVICE_API_KEY=sk_live_app_8f3a9921e4b201`;
+PAYMENT_SERVICE_API_KEY=pk_live_8f3a9921e4b201a0bc98...`;
 
   const checkoutCode = `// 1. Create a hosted checkout session from backend
 const response = await fetch(\`\${process.env.PAYMENT_SERVICE_BASE_URL}/api/v1/checkouts\`, {
@@ -32,12 +32,13 @@ const response = await fetch(\`\${process.env.PAYMENT_SERVICE_BASE_URL}/api/v1/c
   headers: {
     "Content-Type": "application/json",
     "Authorization": \`Bearer \${process.env.PAYMENT_SERVICE_API_KEY}\`,
+    "Idempotency-Key": "evt-order-vip-001",
   },
   body: JSON.stringify({
+    reference: "REIG-EVENT-VIP-001",
     amount: 25000,
     currency: "TZS",
-    country: "TZA",
-    reference: "REIG-EVENT-VIP-001",
+    country: "TZ",
     description: "ReignovaEvents VIP Ticket",
     customer: {
       name: "Juma Ally",

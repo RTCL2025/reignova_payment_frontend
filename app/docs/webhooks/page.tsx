@@ -1,6 +1,6 @@
 import React from 'react';
 import { DocsLayout } from '@/components/docs/DocsLayout';
-import { AlertTriangle, Info } from 'lucide-react';
+import { AlertTriangle, Info, ShieldCheck, RefreshCw, Key, CheckCircle2 } from 'lucide-react';
 
 export const metadata = {
   title: 'Webhooks & HMAC Signatures — Reignova Payment Service',
@@ -17,17 +17,17 @@ const PAYMENT_EVENTS: EventRow[] = [
   {
     name: 'payment.processing',
     tone: 'neutral',
-    description: 'The deposit was accepted by the provider and a prompt was sent to the payer.',
+    description: 'The deposit was accepted by pawaPay and a USSD PIN prompt was sent to the payer.',
   },
   {
     name: 'payment.completed',
     tone: 'success',
-    description: 'Funds confirmed. This is the only event that means you have been paid.',
+    description: 'Funds confirmed and deposited into the platform account. Settle the order.',
   },
   {
     name: 'payment.failed',
     tone: 'failure',
-    description: 'Insufficient funds, wrong PIN, timeout, or rejection by the provider.',
+    description: 'Insufficient funds, wrong PIN, timeout, or rejection by the mobile carrier.',
   },
 ];
 
@@ -35,22 +35,27 @@ const CHECKOUT_EVENTS: EventRow[] = [
   {
     name: 'checkout.processing',
     tone: 'neutral',
-    description: 'The payer chose a provider on the hosted page and approval is pending.',
+    description: 'The payer selected an operator on the hosted page and the USSD prompt is pending approval.',
   },
   {
     name: 'checkout.completed',
     tone: 'success',
-    description: 'Hosted checkout paid in full. Fulfil the order against data.reference.',
+    description: 'Hosted checkout paid in full. Fulfill the order matching data.reference.',
   },
   {
     name: 'checkout.failed',
     tone: 'failure',
-    description: 'The payer could not complete payment. Release anything you reserved.',
+    description: 'The payer rejected the prompt or mobile operator failed. Release reserved inventory.',
   },
   {
     name: 'checkout.expired',
     tone: 'warning',
-    description: 'The session lapsed with no payment. Release reserved stock or seats.',
+    description: 'The session lapsed without payment after 15 minutes of inactivity.',
+  },
+  {
+    name: 'checkout.cancelled',
+    tone: 'failure',
+    description: 'The buyer actively clicked Cancel on the hosted checkout page.',
   },
 ];
 
@@ -58,22 +63,32 @@ const TRANSFER_EVENTS: EventRow[] = [
   {
     name: 'payout.processing',
     tone: 'neutral',
-    description: 'A disbursement to a recipient has been accepted by the provider.',
+    description: 'A mobile money disbursement to a recipient wallet has been accepted by the carrier.',
+  },
+  {
+    name: 'payout.completed',
+    tone: 'success',
+    description: 'Disbursement confirmed delivered to recipient mobile wallet.',
   },
   {
     name: 'payout.failed',
     tone: 'failure',
-    description: 'The disbursement was rejected. Funds were not sent.',
+    description: 'The disbursement was rejected by the carrier. Funds remain unspent.',
   },
   {
     name: 'refund.processing',
     tone: 'neutral',
-    description: 'A refund has been submitted to the provider.',
+    description: 'A refund has been submitted to the provider against an original deposit.',
+  },
+  {
+    name: 'refund.completed',
+    tone: 'success',
+    description: 'Refund confirmed and returned to customer mobile wallet.',
   },
   {
     name: 'refund.failed',
     tone: 'failure',
-    description: 'The refund was rejected and the original payment stands.',
+    description: 'The refund was rejected and the original deposit stands intact.',
   },
 ];
 
@@ -98,7 +113,7 @@ function EventGroup({ title, note, events }: { title: string; note: string; even
             className="p-3 rounded-lg bg-white border border-slate-200 shadow-sm"
           >
             <span className={`${TONE_CLASSES[event.tone]} font-bold block`}>{event.name}</span>
-            <span className="text-slate-600 text-[11px] mt-1 block leading-relaxed">
+            <span className="text-slate-600 text-[11px] mt-1 block leading-relaxed font-sans">
               {event.description}
             </span>
           </li>
@@ -123,6 +138,7 @@ export default function WebhooksPage() {
         { id: 'signature', title: 'HMAC Signature Verification' },
         { id: 'raw-body', title: 'Raw Body Parsing Requirement' },
         { id: 'retries', title: 'Retries & Idempotency' },
+        { id: 'pawapay-ingestion', title: 'Provider Webhook Ingestion (RFC-9421)' },
       ]}
       prevPage={{ title: 'Payment Processing', href: '/docs/payments' }}
       nextPage={{ title: 'Mobile Money Providers', href: '/docs/providers' }}
@@ -130,43 +146,34 @@ export default function WebhooksPage() {
       <section id="events" className="space-y-6">
         <h2 className="text-xl font-bold text-slate-900">Supported Webhook Events</h2>
         <p className="text-slate-700 text-sm leading-relaxed">
-          Every event is delivered to the webhook URL registered against your application, as a
-          POST with a JSON body. Which family you receive depends on how you took the money.
+          Every event is delivered to the webhook URL registered against your SaaS application as an HTTP POST with a JSON body and an HMAC signature header.
         </p>
 
         <div className="p-4 rounded-xl bg-sky-50 border border-sky-300 flex items-start gap-3 text-xs">
           <Info className="size-5 text-sky-600 shrink-0 mt-0.5" />
           <div>
             <h4 className="font-bold text-sky-900 text-sm">
-              Hosted checkouts emit <span className="font-mono">checkout.*</span>, not{' '}
-              <span className="font-mono">payment.*</span>
+              Hosted checkouts emit <span className="font-mono">checkout.*</span>, direct payments emit <span className="font-mono">payment.*</span>
             </h4>
             <p className="text-slate-700 mt-1 leading-relaxed">
-              A hosted checkout has no payment record of its own — the provider owns the deposit —
-              so the <span className="font-mono">checkout.*</span> family is the only notification
-              it produces. If you integrated against{' '}
-              <span className="font-mono">payment.completed</span> alone, handle{' '}
-              <span className="font-mono">checkout.completed</span> as well. Both carry the same{' '}
-              <span className="font-mono">data.reference</span> and an uppercase{' '}
-              <span className="font-mono">data.status</span>, so a handler that switches on status
-              rather than event name already covers both.
+              Both payloads contain <span className="font-mono">data.reference</span> and an uppercase <span className="font-mono">data.status</span>. If your webhook handler keys off <span className="font-mono">data.reference</span> and updates your order based on <span className="font-mono">data.status === &apos;COMPLETED&apos;</span>, you cover both hosted checkouts and direct payments seamlessly.
             </p>
           </div>
         </div>
 
         <EventGroup
-          title="Hosted checkout"
-          note="Emitted when a checkout session you created reaches a new state."
+          title="Hosted Checkout Lifecycle"
+          note="Emitted when a customer interacts with or completes a hosted checkout session."
           events={CHECKOUT_EVENTS}
         />
         <EventGroup
-          title="Direct payments"
-          note="Emitted when you charge a payer directly through the API rather than the hosted page."
+          title="Direct Payments"
+          note="Emitted when you charge a payer directly via POST /api/v1/payments."
           events={PAYMENT_EVENTS}
         />
         <EventGroup
-          title="Payouts & refunds"
-          note="Emitted for money moving out of your balance."
+          title="Payouts & Refunds"
+          note="Emitted when disbursing funds or reversing previous deposits."
           events={TRANSFER_EVENTS}
         />
       </section>
@@ -174,95 +181,86 @@ export default function WebhooksPage() {
       <section id="payload" className="space-y-4 pt-6 border-t border-slate-200">
         <h2 className="text-xl font-bold text-slate-900">Payload Structure</h2>
         <p className="text-slate-700 text-sm leading-relaxed">
-          Every event uses the same envelope. Resolve the order on your side from{' '}
-          <code className="text-amber-800 font-mono">data.reference</code> — the reference you
-          supplied when you created the checkout or payment.
+          Every event uses the standardized Reignova notification envelope:
         </p>
         <div className="bg-[#0F1A25] border border-slate-800 rounded-xl p-4 font-mono text-xs text-amber-300 overflow-x-auto">
           <pre>
             <code>{`{
   "event": "checkout.completed",
-  "timestamp": "2026-09-23T09:14:02.881Z",
+  "timestamp": "2026-10-07T16:16:35.881Z",
   "data": {
-    "checkoutId": "1f0c…",
-    "providerCheckoutId": "cs_sec_bc1fcea…",
-    "paymentId": "dep_9f2…",
-    "reference": "EVT-TICKET-REV-2026-000012",
-    "amount": 85000,
+    "checkoutId": "e2f18374-1234-4a56-b789-0123456789ab",
+    "providerCheckoutId": "pawapay_chk_991823",
+    "paymentId": "7b8cb404-51e4-44b2-a4f6-86cb8114f4ee",
+    "reference": "EVT-ORDER-9921",
+    "amount": 50000,
     "currency": "TZS",
-    "country": "TZA",
+    "country": "TZ",
     "phoneNumber": "+255754123456",
     "provider": "pawapay",
     "status": "COMPLETED",
-    "depositId": "dep_9f2…",
+    "depositId": "7b8cb404-51e4-44b2-a4f6-86cb8114f4ee",
     "depositStatus": "COMPLETED",
     "failureReason": null,
-    "customerEmail": "buyer@example.com",
-    "customerName": "Buyer",
-    "metadata": { "orderId": "ord-1" },
-    "completedAt": "2026-09-23T09:14:01.402Z",
+    "customerEmail": "baraka@reignova.com",
+    "customerName": "Baraka Mussa",
+    "metadata": { "ticketTier": "VIP", "orderId": "ord_9921" },
+    "completedAt": "2026-10-07T16:16:35.000Z",
     "failedAt": null,
     "expiredAt": null
   }
 }`}</code>
           </pre>
         </div>
-        <p className="text-slate-700 text-sm leading-relaxed">
-          <code className="text-amber-800 font-mono">payment.*</code> events carry the same
-          envelope with <code className="text-amber-800 font-mono">paymentId</code>,{' '}
-          <code className="text-amber-800 font-mono">providerPaymentId</code> and{' '}
-          <code className="text-amber-800 font-mono">description</code> in place of the
-          checkout-specific fields.
-        </p>
       </section>
 
       <section id="signature" className="space-y-4 pt-6 border-t border-slate-200">
         <h2 className="text-xl font-bold text-slate-900">HMAC-SHA256 Signature Verification</h2>
         <p className="text-slate-700 text-sm leading-relaxed">
-          Each request carries an{' '}
-          <code className="text-amber-800 font-mono">X-Payment-Signature</code> header in the form{' '}
-          <code className="text-amber-800 font-mono">t=&lt;unix_seconds&gt;,v1=&lt;hex_sha256&gt;</code>
-          . The signed string is the timestamp, a literal dot, then the raw body — signing the body
-          on its own will never match.
+          Each webhook includes an <code className="text-amber-800 font-mono">X-Payment-Signature</code> header in the format{' '}
+          <code className="text-amber-800 font-mono">t=&lt;unix_seconds&gt;,v1=&lt;hex_sha256&gt;</code>.
+          The signed string is the timestamp, a literal period, and the raw unparsed request body (<code className="font-mono">&quot;${'{'}timestamp{'}'}.${'{'}rawBody{'}'}&quot;</code>).
         </p>
         <div className="bg-[#0F1A25] border border-slate-800 rounded-xl p-4 font-mono text-xs text-amber-300 overflow-x-auto">
           <pre>
-            <code>{`import crypto from 'crypto';
+            <code>{`import crypto from 'node:crypto';
 
-const header = req.headers['x-payment-signature'];
-const parts = Object.fromEntries(
-  header.split(',').map((p) => p.trim().split('='))
-);
-const { t: timestamp, v1: received } = parts;
+export async function verifyWebhook(req: Request) {
+  const header = req.headers.get('x-payment-signature');
+  if (!header) throw new Error('Missing signature header');
 
-// Reject replays older than five minutes.
-if (Math.abs(Date.now() - Number(timestamp) * 1000) > 300_000) {
-  throw new Error('Signature expired');
-}
+  const parts = Object.fromEntries(
+    header.split(',').map((p) => p.trim().split('='))
+  );
+  const { t: timestamp, v1: receivedSignature } = parts;
 
-const expected = crypto
-  .createHmac('sha256', process.env.WEBHOOK_SECRET)
-  .update(\`\${timestamp}.\${rawBodyString}\`)
-  .digest('hex');
+  // 1. Enforce 5-minute replay tolerance window
+  const ageMs = Math.abs(Date.now() - Number(timestamp) * 1000);
+  if (ageMs > 300_000) {
+    throw new Error('Webhook signature timestamp expired');
+  }
 
-// timingSafeEqual throws when the buffers differ in length.
-const a = Buffer.from(received, 'hex');
-const b = Buffer.from(expected, 'hex');
-const isValid = a.length === b.length && crypto.timingSafeEqual(a, b);`}</code>
+  // 2. Read the raw text body (DO NOT use JSON.parse first)
+  const rawBody = await req.text();
+  const secret = process.env.PAYMENT_WEBHOOK_SECRET!;
+
+  // 3. Compute expected signature
+  const expected = crypto
+    .createHmac('sha256', secret)
+    .update(\`\${timestamp}.\${rawBody}\`)
+    .digest('hex');
+
+  // 4. Compare bytes in constant time
+  const a = Buffer.from(receivedSignature, 'hex');
+  const b = Buffer.from(expected, 'hex');
+
+  if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) {
+    throw new Error('Invalid webhook signature');
+  }
+
+  return JSON.parse(rawBody);
+}`}</code>
           </pre>
-        </div>
-        <div className="p-4 rounded-xl bg-amber-50 border border-amber-300 flex items-start gap-3 text-xs">
-          <AlertTriangle className="size-5 text-amber-600 shrink-0 mt-0.5" />
-          <div>
-            <h4 className="font-bold text-amber-900 text-sm">Two things that silently break this</h4>
-            <p className="text-slate-700 mt-1 leading-relaxed">
-              Comparing the whole header against a bare digest never matches — parse{' '}
-              <span className="font-mono">v1</span> out first. And calling{' '}
-              <span className="font-mono">timingSafeEqual</span> on buffers of different lengths
-              throws rather than returning false, which turns a rejected webhook into a 500 and an
-              endless retry loop.
-            </p>
-          </div>
         </div>
       </section>
 
@@ -271,11 +269,9 @@ const isValid = a.length === b.length && crypto.timingSafeEqual(a, b);`}</code>
         <div className="p-4 rounded-xl bg-amber-50 border border-amber-300 flex items-start gap-3 text-xs">
           <AlertTriangle className="size-5 text-amber-600 shrink-0 mt-0.5" />
           <div>
-            <h4 className="font-bold text-amber-900 text-sm">Do Not Parse JSON First</h4>
+            <h4 className="font-bold text-amber-900 text-sm">Do Not Parse JSON Before Verifying</h4>
             <p className="text-slate-700 mt-1 leading-relaxed">
-              Always read the unparsed HTTP request body string before running{' '}
-              <code className="text-amber-800 font-mono">JSON.parse()</code>. Middleware body
-              parsers alter JSON formatting and break signature digests.
+              Standard body parser middlewares alter whitespace, newlines, and key ordering. Always capture the raw byte buffer or string stream before JSON parsing, or signature validation will fail.
             </p>
           </div>
         </div>
@@ -284,9 +280,7 @@ const isValid = a.length === b.length && crypto.timingSafeEqual(a, b);`}</code>
       <section id="retries" className="space-y-4 pt-6 border-t border-slate-200">
         <h2 className="text-xl font-bold text-slate-900">Retries & Idempotency</h2>
         <p className="text-slate-700 text-sm leading-relaxed">
-          Reply <code className="text-amber-800 font-mono">2xx</code> as soon as you have stored
-          the event. Any other status — or a timeout — is treated as a failed delivery and retried
-          five times with a widening gap:
+          Your endpoint must return HTTP <code className="text-amber-800 font-mono">2xx</code> within 5 seconds. If your server returns 4xx/5xx or times out, Payment Service automatically retries up to 5 times with exponential backoff:
         </p>
         <div className="flex flex-wrap gap-2 font-mono text-xs">
           {['1 min', '5 min', '15 min', '30 min', '1 hour'].map((delay, index) => (
@@ -294,27 +288,24 @@ const isValid = a.length === b.length && crypto.timingSafeEqual(a, b);`}</code>
               key={delay}
               className="px-3 py-1.5 rounded-lg bg-white border border-slate-200 shadow-sm text-slate-700"
             >
-              <span className="text-slate-400">#{index + 1}</span> {delay}
+              <span className="text-slate-400">Attempt #{index + 1}:</span> {delay} delay
             </span>
           ))}
         </div>
-        <p className="text-slate-700 text-sm leading-relaxed">
-          Because a delivery can succeed on your side and still be retried — a timeout after you
-          committed, for instance — your handler must be idempotent. Key off{' '}
-          <code className="text-amber-800 font-mono">data.reference</code> and treat an order that
-          is already settled as a success rather than an error.
+        <p className="text-slate-700 text-sm leading-relaxed pt-2">
+          Make your webhook receiver idempotent: if you receive <code className="text-amber-800 font-mono">checkout.completed</code> for an order that was already fulfilled, safely acknowledge with <code className="font-mono text-emerald-700">200 OK</code>.
         </p>
-        <div className="p-4 rounded-xl bg-sky-50 border border-sky-300 flex items-start gap-3 text-xs">
-          <Info className="size-5 text-sky-600 shrink-0 mt-0.5" />
-          <div>
-            <h4 className="font-bold text-sky-900 text-sm">Do not treat the return URL as proof</h4>
-            <p className="text-slate-700 mt-1 leading-relaxed">
-              A payer landing back on your return URL does not mean the money arrived, and a payer
-              who closes the tab has still paid. Settle orders from the webhook, or from an explicit
-              status lookup — never from the browser redirect alone.
-            </p>
-          </div>
-        </div>
+      </section>
+
+      <section id="pawapay-ingestion" className="space-y-4 pt-6 border-t border-slate-200">
+        <h2 className="text-xl font-bold text-slate-900">Provider Webhook Ingestion (RFC-9421)</h2>
+        <p className="text-slate-700 text-sm leading-relaxed">
+          Between pawaPay and Reignova Payment Service, callbacks are received on <code className="text-amber-800 font-mono">/api/v1/webhooks/pawapay</code>:
+        </p>
+        <ul className="list-disc pl-5 text-xs text-slate-700 space-y-1">
+          <li><strong>RFC-9421 Signatures</strong>: pawaPay signs incoming webhooks with <code className="font-mono">Signature</code>, <code className="font-mono">Signature-Input</code>, and <code className="font-mono">Content-Digest</code>.</li>
+          <li><strong>Fast-Acknowledgement</strong>: Callbacks are acknowledged within 50ms, deduplicated against <code className="font-mono">webhook_events</code> table, and transactions are settled deterministically before client notification.</li>
+        </ul>
       </section>
     </DocsLayout>
   );

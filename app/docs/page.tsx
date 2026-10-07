@@ -22,49 +22,49 @@ export default function DocsOverviewPage() {
       title: 'API Authentication',
       icon: ShieldCheck,
       href: '/docs/authentication',
-      desc: 'Bearer tokens, Admin-Api-Key headers, key rotation, and scope management.',
+      desc: 'Bearer tokens (pk_live_ / pk_test_), SHA-256 peppered security, Admin-Api-Key headers, and scopes.',
     },
     {
       title: 'Hosted Checkouts',
       icon: CreditCard,
       href: '/docs/checkouts',
-      desc: 'Session creation, public Tokens, redirect URLs, customer payment UI, and expiration.',
+      desc: 'Server-to-server creation, public tokens, customer UI flow, status polling, and receipts.',
     },
     {
       title: 'Payment Processing',
       icon: ArrowLeftRight,
       href: '/docs/payments',
-      desc: 'Push payment initiation, deposit IDs, status polling, and idempotency.',
+      desc: 'Direct STK push deposits, disbursements/payouts, refunds, and strict idempotency handling.',
     },
     {
       title: 'Webhooks & HMAC',
       icon: Webhook,
       href: '/docs/webhooks',
-      desc: 'Cryptographic signature verification, raw body handling, and duplicate event suppression.',
+      desc: 'Cryptographic HMAC-SHA256 signature verification, raw body handling, and retry schedules.',
     },
     {
       title: 'Mobile Money Providers',
       icon: Network,
       href: '/docs/providers',
-      desc: 'Supported countries (TZ, KE, UG, GH, ZM), currencies, and pawaPay integration.',
+      desc: 'Tanzania mobile networks (Vodacom, Airtel, Yas/Tigo, Halotel), TZS formatting, and pawaPay V2.',
     },
     {
       title: 'Errors & Troubleshooting',
       icon: AlertCircle,
       href: '/docs/errors',
-      desc: 'RFC-7807 error responses, provider failure codes, retryable vs terminal errors.',
+      desc: 'Structured JSON error envelope, error codes, provider failure mappings, and state transition rules.',
     },
     {
       title: 'Sandbox Testing',
       icon: TestTube,
       href: '/docs/testing',
-      desc: 'Sandbox environment, test phone numbers, simulated approvals, and timeouts.',
+      desc: 'Sandbox environment, test phone numbers, end-to-end webhook verification, and local tunneling.',
     },
     {
       title: 'API Reference',
       icon: Code2,
       href: '/docs/api-reference',
-      desc: 'Full REST API endpoint contracts for checkouts, payments, webhooks, and status.',
+      desc: 'Full REST API endpoint contracts for checkouts, direct payments, payouts, refunds, and health.',
     },
   ];
 
@@ -72,7 +72,7 @@ export default function DocsOverviewPage() {
     <DocsLayout
       breadcrumbs={[{ title: 'Documentation Overview' }]}
       title="Reignova Payment Service Documentation"
-      description="Welcome to the developer portal for Reignova Payment Service. Learn how to initiate hosted checkouts, process mobile money payments, configure webhooks, and manage API credentials."
+      description="Welcome to the developer portal for Reignova Payment Service. Learn how to initiate hosted checkouts, process direct mobile money payments, disburse payouts, issue refunds, and verify cryptographic webhooks."
       toc={[
         { id: 'intro', title: 'System Introduction' },
         { id: 'architecture', title: 'Core Architecture' },
@@ -82,20 +82,41 @@ export default function DocsOverviewPage() {
     >
       <section id="intro" className="space-y-4">
         <h2 className="text-xl font-bold text-slate-900">System Introduction</h2>
-        <p className="text-slate-700">
-          <strong>Reignova Payment Service</strong> provides centralized payment orchestration for Reignova applications, including ReignovaEvents. It abstracts direct mobile operator connections by integrating through <strong>pawaPay</strong>, supporting mobile money operators across East and West Africa (M-Pesa, Airtel Money, Tigo Pesa, Halopesa, MTN Mobile Money).
+        <p className="text-slate-700 leading-relaxed">
+          <strong>Reignova Payment Service</strong> is a production-grade, multi-tenant mobile money payment orchestration platform purpose-built for SaaS applications (including <strong>ReignovaEvents</strong>). It integrates directly with <strong>pawaPay V2</strong> to provide robust, zero-lock-in deposit, payout, refund, and hosted checkout orchestration across Tanzanian mobile operators:
         </p>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1 font-mono text-xs">
+          <div className="p-3 rounded-lg bg-white border border-slate-200 shadow-sm text-center">
+            <span className="font-bold text-red-600 block">Vodacom M-Pesa</span>
+            <span className="text-slate-500 text-[11px]">VODACOM_TZA</span>
+          </div>
+          <div className="p-3 rounded-lg bg-white border border-slate-200 shadow-sm text-center">
+            <span className="font-bold text-rose-600 block">Airtel Money</span>
+            <span className="text-slate-500 text-[11px]">AIRTEL_TZA</span>
+          </div>
+          <div className="p-3 rounded-lg bg-white border border-slate-200 shadow-sm text-center">
+            <span className="font-bold text-sky-600 block">Mixx by Yas / Tigo</span>
+            <span className="text-slate-500 text-[11px]">YAS_TZA / TIGO_TZA</span>
+          </div>
+          <div className="p-3 rounded-lg bg-white border border-slate-200 shadow-sm text-center">
+            <span className="font-bold text-orange-600 block">Halotel HaloPesa</span>
+            <span className="text-slate-500 text-[11px]">HALOTEL_TZA</span>
+          </div>
+        </div>
       </section>
 
       <section id="architecture" className="space-y-4 pt-4 border-t border-slate-200">
-        <h2 className="text-xl font-bold text-slate-900">Core Architecture</h2>
+        <h2 className="text-xl font-bold text-slate-900">Core Architecture & Flow</h2>
         <div className="bg-[#0F1A25] border border-slate-800 rounded-xl p-5 space-y-3 font-mono text-xs text-slate-200 shadow-sm">
-          <div className="text-amber-400 font-bold">// Central Integration Flow</div>
-          <div>1. Merchant Application Backend → POST /api/v1/checkouts/public (Generates publicToken)</div>
-          <div>2. Customer Browser → Redirected to /checkout/[publicToken]</div>
-          <div>3. Customer Selects Provider & Phone → POST /api/v1/checkouts/public/[token]/pay</div>
-          <div>4. Payment Service → Dispatches USSD Deposit Push via pawaPay</div>
-          <div>5. Payment Service → Dispatches HMAC-Signed Webhook to Merchant Backend</div>
+          <div className="text-amber-400 font-bold">// Hosted Checkout Flow</div>
+          <div>1. Merchant Application Backend → POST /api/v1/checkouts (Bearer pk_live_... + Idempotency-Key)</div>
+          <div>2. Payment Service Response → Returns publicToken, checkoutCode, and redirectUrl</div>
+          <div>3. Customer Browser → Navigates to https://pay.reignovatechnologies.com/checkout/[publicToken]</div>
+          <div>4. Customer Selects Network & Phone → POST /api/v1/checkouts/public/[publicToken]/pay</div>
+          <div>5. Payment Service → Initiates USSD deposit push via pawaPay V2 (Transitions to PROCESSING)</div>
+          <div>6. Customer Handset → Approves PIN prompt on mobile money handset</div>
+          <div>7. pawaPay → Delivers signed RFC-9421 callback to /api/v1/webhooks/pawapay</div>
+          <div>8. Payment Service → Dispatches HMAC-SHA256 webhook (X-Payment-Signature) to Merchant Backend</div>
         </div>
       </section>
 

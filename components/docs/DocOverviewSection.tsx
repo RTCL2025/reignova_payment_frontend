@@ -84,16 +84,17 @@ curl -X GET https://pay-api.reignovatechnologies.com/api/v1/health`,
         breadcrumbs: ["Docs", "Getting Started", "Authentication"],
         title: "Authenticating API Requests",
         intro:
-          "Backend applications authenticate by passing a Bearer API token or Admin-Api-Key header. Real secret keys must never be exposed to public clients.",
+          "Backend applications authenticate by passing a Bearer API token (pk_live_ / pk_test_). Real secret keys must never be exposed to public clients.",
         codeSample: {
           lang: "bash",
           request: `# Service Request Headers
-Authorization: Bearer sk_live_app_889104
+Authorization: Bearer pk_live_889104a0bc98e...
+Idempotency-Key: evt-order-99120
 Content-Type: application/json`,
           response: `{
   "authenticated": true,
-  "merchantId": "app_reignova_events",
-  "permissions": ["checkouts:create", "checkouts:read"]
+  "applicationId": "9d3108cf-6cad-4e9c-ac3c-c7cd4ad456d7",
+  "status": "ACTIVE"
 }`,
         },
         parameters: [
@@ -101,13 +102,13 @@ Content-Type: application/json`,
             name: "Authorization",
             type: "header",
             required: true,
-            desc: "Bearer <apiKey> for backend API calls",
+            desc: "Bearer pk_live_... for backend API calls",
           },
           {
-            name: "Admin-Api-Key",
+            name: "Idempotency-Key",
             type: "header",
-            required: false,
-            desc: "Alternative header for administrative tasks",
+            required: true,
+            desc: "Unique request identifier preventing duplicate operations",
           },
         ],
       },
@@ -126,22 +127,25 @@ Content-Type: application/json`,
           "Initiate a checkout session from your backend application. The Payment Service returns a publicToken and a hosted checkout URL for customer redirection.",
         codeSample: {
           lang: "json",
-          request: `POST /checkouts/public
+          request: `POST /api/v1/checkouts
 {
+  "reference": "EVT-TICKET-8921",
   "amount": 50000,
   "currency": "TZS",
-  "country": "TZA",
-  "reference": "EVT-TICKET-8921",
+  "country": "TZ",
+  "returnUrl": "https://events.reignovatechnologies.com/checkout/success",
   "description": "ReignovaEvents Standard Pass"
 }`,
           response: `{
   "success": true,
   "data": {
-    "publicToken": "chk_pub_98a7b6c5",
+    "publicToken": "chk_pub_98a7b6c51120",
+    "checkoutCode": "CK-8921-A1",
     "reference": "EVT-TICKET-8921",
     "amount": 50000,
     "currency": "TZS",
-    "status": "PENDING"
+    "status": "PENDING",
+    "redirectUrl": "/checkout/chk_pub_98a7b6c51120"
   }
 }`,
         },
@@ -150,19 +154,19 @@ Content-Type: application/json`,
             name: "amount",
             type: "number",
             required: true,
-            desc: "Total transaction amount in smallest currency unit",
+            desc: "Positive integer amount in TZS (zero decimals)",
           },
           {
             name: "currency",
             type: "string",
             required: true,
-            desc: "3-letter ISO code (e.g. TZS, KES, UGX)",
+            desc: "3-letter ISO code: TZS",
           },
           {
             name: "country",
             type: "string",
             required: true,
-            desc: "3-letter ISO country code (e.g. TZA, KEN)",
+            desc: "Country code: TZ",
           },
           {
             name: "reference",
@@ -187,11 +191,16 @@ Content-Type: application/json`,
           "Webhooks sent to your callback URL contain an HMAC signature header. Always verify the signature using your raw unparsed request body before processing fulfillment.",
         codeSample: {
           lang: "typescript",
-          request: `import crypto from 'crypto';
+          request: `import crypto from 'node:crypto';
 
-function verifySignature(rawBody: string, signature: string, secret: string) {
-  const expected = crypto.createHmac('sha256', secret).update(rawBody).digest('hex');
-  return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected));
+function verifySignature(header: string, rawBody: string, secret: string): boolean {
+  const parts = Object.fromEntries(header.split(',').map((p) => p.trim().split('=')));
+  const { t: timestamp, v1: received } = parts;
+  const expected = crypto
+    .createHmac('sha256', secret)
+    .update(\`\${timestamp}.\${rawBody}\`)
+    .digest('hex');
+  return crypto.timingSafeEqual(Buffer.from(received, 'hex'), Buffer.from(expected, 'hex'));
 }`,
           response: `// Return HTTP 200 OK immediately after queuing event
 res.status(200).json({ received: true });`,
@@ -201,13 +210,13 @@ res.status(200).json({ received: true });`,
             name: "X-Payment-Signature",
             type: "header",
             required: true,
-            desc: "HMAC-SHA256 signature of raw request body",
+            desc: "Format: t=<unix_seconds>,v1=<hex_sha256>",
           },
           {
             name: "webhookSecret",
             type: "secret",
             required: true,
-            desc: "Shared secret generated during merchant setup",
+            desc: "Shared tenant secret (whsec_...)",
           },
         ],
       },

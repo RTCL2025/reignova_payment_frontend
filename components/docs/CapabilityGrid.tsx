@@ -40,7 +40,7 @@ export const CAPABILITIES: CapabilityItem[] = [
     id: 'provider-integration',
     icon: Network,
     title: 'Provider Integration',
-    description: 'Connect directly to mobile money operators across Tanzania, Kenya, Uganda, Ghana, and Zambia via pawaPay orchestration.',
+    description: 'Connect directly to Tanzanian mobile operators (Vodacom M-Pesa, Airtel Money, Yas/Tigo Pesa, Halotel) via pawaPay orchestration.',
     href: '/docs/providers',
     badge: 'pawaPay Integration',
   },
